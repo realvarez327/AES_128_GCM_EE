@@ -1,5 +1,8 @@
 package ee;
 
+import java.sql.SQLOutput;
+import java.util.Arrays;
+
 public class App {
     static final int Nr = 10;
     static final int Nb = 4;
@@ -60,20 +63,34 @@ public class App {
     };
 
     public static void main(String[] args) {
+
         String plainText = "calligraphically";
         int[] cipherText = cipher( keyString, plaintextTo2DIntArray(plainText));
-        int[] backToPlainText = invCipher(keyString, linearToTwoDimensionalArray(cipherText));
 
+        System.out.println(linearIntArrayToString(cipherText));
+        int[] backToPlainText = invCipher(keyString, linearToTwoDimensionalArray(cipherText));
+        System.out.println(linearIntArrayToString(backToPlainText));
     }
+
+    static String linearIntArrayToString(int[] input){
+        char[] toReturn = new char[input.length];
+        for (int i = 0; i < input.length; i++){
+            toReturn[i]= (char) input[i];
+
+        }
+        return new String(toReturn);
+    }
+
 
     static int[] twoDimensionalToLinearArray(int[][] input){
         int width = input.length;
         int[] out = new int[width *width];
         for (int r = 0; r < width; r++) {
             for (int c = 0; c < width; c++) {
-                input[r][c] = out[r + (width * c)];
+                 out[r + (width * c)] = input[r][c];
             }
         }
+        System.out.println(Arrays.toString(out));
         return out;
     }
 
@@ -146,37 +163,7 @@ private final static int WEIRD_CONSTANT = 0b11011;
         return twoDimensionalToLinearArray(state);
     }
 
-    static int multiplication(int a, int b) {
-        //currently using wikipedia's explanation of russian peasant multiplication method adaptation
-        //TODO = find better source
-//        byte p = 0;
-//        byte carry = 0b0;
-//        for (int i = 0; i < 8; i++) {
-//            if ((b & 1) == 1) {
-//                p = (byte) (p ^ a);
-//                //nicer way to do this??
-//            }
-//            b = (byte) (b >>> 1);
-//            if ((a & 255) > 254) {//MUST BE A BETTER WAY TO DO THIS, check if leftmost bit is set;
-//                carry = 0b1;
-//            }
-//            a = (byte) (a << 1);
-//            if (carry == 1) {
-//                a = (byte) (a ^ 0x1b);
-//            }
-//        }
-//        return p;
-        int multiplier = b/2;
-        int addend = xTimes(a);
-        int res = 0;
-        for (int i = 0; i < multiplier; i++) {
-            res ^= addend;
-        }
-        if(!((b%2)==0)){
-            return res ^ a;
-        }
-        return res;
-    }
+    //try to reunderstand what i did here
 static int multiplicationB (int a, int b){
         if (a>0 && b>0){
             if (a==1 ) {
@@ -221,25 +208,25 @@ static int multiplicationB (int a, int b){
 
             int[] newColumnBytes = new int[4];
             newColumnBytes[0] =
-                    multiplication( 2, state[0][column]) ^
-                            (multiplication(3, state[1][column])) ^
+                    multiplicationB( 2, state[0][column]) ^
+                            (multiplicationB(3, state[1][column])) ^
                             state[2][column] ^
                             state[3][column];
             newColumnBytes[1] =
                     state[0][column] ^
-                            multiplication(2, state[1][column]) ^
-                            multiplication(3, state[2][column]) ^
+                            multiplicationB(2, state[1][column]) ^
+                            multiplicationB(3, state[2][column]) ^
                             state[3][column];
             newColumnBytes[2] =
                     state[0][column] ^
                             state[1][column]
-                            ^ multiplication(2, state[2][column])
-                            ^ multiplication(3, state[3][column]);
+                            ^ multiplicationB(2, state[2][column])
+                            ^ multiplicationB(3, state[3][column]);
             newColumnBytes[3] =
-                    multiplication(3, state[0][column]) ^
+                    multiplicationB(3, state[0][column]) ^
                             state[1][column] ^
                             state[2][column] ^
-                            multiplication(2, state[3][column]);
+                            multiplicationB(2, state[3][column]);
 
             for (int i = 0; i < 4; i++) {
                 state[i][column] = newColumnBytes[i];
@@ -397,28 +384,28 @@ static int multiplicationB (int a, int b){
         int[] newCol = new int[Nb];
         for (int c = 0; c < Nb; c++) {
             newCol[0] =
-                    multiplication( 0x0e, in[0][c])
-                            ^ multiplication( 0x0b, in[1][c])
-                            ^ multiplication(0x0d, in[2][c])
-                            ^ multiplication( 0x09, in[3][c]);
+                    multiplicationB( 0x0e, in[0][c])
+                            ^ multiplicationB( 0x0b, in[1][c])
+                            ^ multiplicationB(0x0d, in[2][c])
+                            ^ multiplicationB( 0x09, in[3][c]);
 
             newCol[1] =
-                    multiplication(0x09, in[0][c])
-                            ^ multiplication( 0x0e, in[1][c])
-                            ^ multiplication( 0x0b, in[2][c])
-                            ^ multiplication(0x0d, in[3][c]);
+                    multiplicationB(0x09, in[0][c])
+                            ^ multiplicationB( 0x0e, in[1][c])
+                            ^ multiplicationB( 0x0b, in[2][c])
+                            ^ multiplicationB(0x0d, in[3][c]);
 
             newCol[2] =
-                    multiplication(0x0d, in[0][c])
-                            ^ multiplication(0x09, in[1][c])
-                            ^ multiplication(0x0e, in[2][c])
-                            ^ multiplication(0x0b, in[3][c]);
+                    multiplicationB(0x0d, in[0][c])
+                            ^ multiplicationB(0x09, in[1][c])
+                            ^ multiplicationB(0x0e, in[2][c])
+                            ^ multiplicationB(0x0b, in[3][c]);
 
             newCol[3] =
-                    multiplication( 0x0b, in[0][c])
-                            ^ multiplication( 0x0d, in[1][c])
-                            ^ multiplication(0x09, in[2][c])
-                            ^ multiplication(0x0e, in[3][c]);
+                    multiplicationB( 0x0b, in[0][c])
+                            ^ multiplicationB( 0x0d, in[1][c])
+                            ^ multiplicationB(0x09, in[2][c])
+                            ^ multiplicationB(0x0e, in[3][c]);
 
             in[0][c] = newCol[0];
             in[1][c] = newCol[1];
