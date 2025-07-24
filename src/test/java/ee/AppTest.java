@@ -2,7 +2,10 @@ package ee;
 
 import org.junit.jupiter.api.Test;
 
+import static ee.AES_128.*;
 import static ee.App.*;
+import static ee.Utils.linearIntArrayToString;
+import static ee.Utils.twoDimensionalToLinearArray;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -22,11 +25,11 @@ public class AppTest {
 
     @Test
     public void testMultiply() {
-        assertEquals(0, App.multiplicationB(0, 19));
-        assertEquals(87, App.multiplicationB(87, 1));
-        assertEquals(87, App.multiplicationB(1, 87));
-        assertEquals(174, App.multiplicationB(87, 2));
-        assertEquals(0xfe, App.multiplicationB(0x57, 0x13));
+        assertEquals(0, multiplicationB(0, 19));
+        assertEquals(87, multiplicationB(87, 1));
+        assertEquals(87, multiplicationB(1, 87));
+        assertEquals(174, multiplicationB(87, 2));
+        assertEquals(0xfe, multiplicationB(0x57, 0x13));
     }
 
     @Test
