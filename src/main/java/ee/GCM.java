@@ -2,22 +2,10 @@ package ee;
 
 import java.util.BitSet;
 
+import static ee.Utils.stringToBitset;
+
 public class GCM {
-    //todo, revisit
-    static BitSet stringToBitset(String input){
-        BitSet toReturn = new BitSet(input.length()*16);
-        StringBuilder inputAsBitString = new StringBuilder();
-        // not setting capacity bc dont want it to be too big
-        for (int i = 0; i < input.length(); i++) {
-            inputAsBitString.append(Integer.toBinaryString(input.charAt(i)));
-        }
-        for (int i = 0; i < inputAsBitString.length(); i++) {
-            if(inputAsBitString.charAt(i)=='1'){
-                toReturn.set(i);
-            }
-        }
-        return toReturn;
-    }
+
 
 
     static int[] getNAndU(String P){
@@ -59,22 +47,48 @@ public class GCM {
     }
 
 
+    static BitSet[] getArrayFormOfPlaintext(int[] nAndU, String P){
+        StringBuilder plaintextMeddlingVersion = new StringBuilder(P);
+        BitSet[] toReturn = new BitSet[nAndU[0]+1];
+        int currStringIndex = 0;
+        for (int i = 0; i < nAndU[0]; i++) {
+            toReturn[i] = stringToBitset(plaintextMeddlingVersion.substring(0, 8));
+            plaintextMeddlingVersion.delete(0, 8);
+        }
+        toReturn[nAndU[0]]= stringToBitset(String.valueOf(plaintextMeddlingVersion));
+        return toReturn;
+    }
+
     static void gcmEncryption(String K, String P, String IV, String AAD){
+
         int[] nAndU = getNAndU(P);
-        int n = nAndU[0];
-        int m = nAndU[1]; // try to just use the int array actually
+        BitSet[] ArrayP = getArrayFormOfPlaintext(nAndU, P);
+        //Fill ArrayP with P, 128 bit strings until n reached. Then fill last index with m last bits
         int[] H = AES_128.cipher(K,new int[][]{
                 {0,0,0,0},
                 {0,0,0,0},
                 {0,0,0,0},
                 {0,0,0,0}
         });
-        BitSet[] Y = new BitSet[n+1];
+        //todo H should be a bitset
+        BitSet[] Y = new BitSet[nAndU[0]+1];
         Y[0] = stringToBitset(IV + 0b00000000000000000000000000000001);
-        for (int i = 1; i <= n; i++) {
+        for (int i = 1; i <= nAndU[0]; i++) {
             //increment it
             Y[i] = incr(Y[i-1]);
         }
+
+        BitSet[] C = new BitSet[nAndU[0]+1];
+        for (int i = 1; i < nAndU[0]; i++) {
+            ArrayP[i].xor(Utils.intLinearArrayToBitset(AES_128.cipher(K, Utils.bitsetToTwoDimensionalIntArray(Y[i]))));
+            C[i] = ArrayP[i];
+            ArrayP[i].xor(Utils.intLinearArrayToBitset(AES_128.cipher(K, Utils.bitsetToTwoDimensionalIntArray(Y[i]))));
+            //todo: Find a better way to do this and implement helper functions
+        }
+        //take care of extra bits, xor extra ArrayP bits with u most significant bits of cipher (K, Yn)
+        //T(tag) = t(tag.length) most sig bits of[ Ghash(H, A, C) xored with cipher of K and Y0]
+
+
 
     }
 }

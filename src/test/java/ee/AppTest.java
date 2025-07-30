@@ -2,8 +2,6 @@ package ee;
 
 import org.junit.jupiter.api.Test;
 
-import static ee.AES_128.*;
-import static ee.App.*;
 import static ee.Utils.linearIntArrayToString;
 import static ee.Utils.twoDimensionalToLinearArray;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -16,29 +14,29 @@ public class AppTest {
 
     @Test
     public void testXTimes() {
-        assertEquals(0x47, xTimes(0xae));
-        assertEquals(0x8e, xTimes(0x47));
-        assertEquals(0x07, xTimes(0x8e));
-        assertEquals(0x0e, xTimes(0x07));
+        assertEquals(0x47, Utils.xTimes(0xae));
+        assertEquals(0x8e, Utils.xTimes(0x47));
+        assertEquals(0x07, Utils.xTimes(0x8e));
+        assertEquals(0x0e, Utils.xTimes(0x07));
 
     }
 
     @Test
     public void testMultiply() {
-        assertEquals(0, multiplicationB(0, 19));
-        assertEquals(87, multiplicationB(87, 1));
-        assertEquals(87, multiplicationB(1, 87));
-        assertEquals(174, multiplicationB(87, 2));
-        assertEquals(0xfe, multiplicationB(0x57, 0x13));
+        assertEquals(0, Utils.multiplicationB(0, 19));
+        assertEquals(87, Utils.multiplicationB(87, 1));
+        assertEquals(87, Utils.multiplicationB(1, 87));
+        assertEquals(174, Utils.multiplicationB(87, 2));
+        assertEquals(0xfe, Utils.multiplicationB(0x57, 0x13));
     }
 
     @Test
     public void testFindHighestPowerOf2() {
-        assertEquals(4, findHighestPowerOf2(16));
-        assertEquals(3, findHighestPowerOf2(15));
-        assertEquals(4, findHighestPowerOf2(17));
-        assertEquals(0, findHighestPowerOf2(1));
-        assertEquals(-1, findHighestPowerOf2(0));
+        assertEquals(4, Utils.findHighestPowerOf2(16));
+        assertEquals(3, Utils.findHighestPowerOf2(15));
+        assertEquals(4, Utils.findHighestPowerOf2(17));
+        assertEquals(0, Utils.findHighestPowerOf2(1));
+        assertEquals(-1, Utils.findHighestPowerOf2(0));
     }
 
     @Test

@@ -59,21 +59,6 @@ public class AES_128 {
     };
 
 
-    private final static int WEIRD_CONSTANT = 0b11011;
-    private final static int ONE_BYTE = 0b11111111;
-
-    static int xTimes(int a) {
-        //multiply a by primitive element (0x02, or ob10)
-        int twice = a << 1;
-        if (a < 128) {//7th bit not set
-            return twice;
-        } else {
-            return (twice & ONE_BYTE) ^ (WEIRD_CONSTANT);
-        }
-    }
-
-
-
     @SuppressWarnings("DataFlowIssue")
     static int[] cipher(String key, int[][] state) {
         int[][] w = keyExpansion(plaintextTo2DIntArray(key));
@@ -113,45 +98,6 @@ public class AES_128 {
                 {w[3][(4 * Nr)], w[3][(4 * Nr) + 1], w[3][(4 * Nr) + 2], w[3][(4 * Nr) + 3]}
         });
         return twoDimensionalToLinearArray(state);
-    }
-
-    //try to understand what I did here
-    static int multiplicationB(int a, int b) {
-        if (a > 0 && b > 0) {
-            if (a == 1) {
-                return b;
-            }
-            if (b == 1) {
-                return a;
-            }
-            int highestBitSet = findHighestPowerOf2(b);
-            int[] xTimesValues = new int[highestBitSet + 1];
-            xTimesValues[0] = a;
-            for (int p = 1; p < highestBitSet + 1; p++) {
-                xTimesValues[p] = xTimes(xTimesValues[p - 1]);
-            }
-            int remainder = b;
-            int addition = 0;
-            for (int p = xTimesValues.length - 1; p >= 0; p--) {
-                int twoToTheP = 1 << p;
-                if (remainder >= twoToTheP) {
-                    addition ^= xTimesValues[p];
-                    remainder -= twoToTheP;
-                }
-            }
-            return addition;
-        }
-        return 0;
-    }
-
-    public static int findHighestPowerOf2(int n) {
-        int index = 0;
-        int pow2 = 1;
-        while (n >= pow2) {
-            pow2 = pow2 << 1;
-            index++;
-        }
-        return index - 1;
     }
 
     static int[][] mixColumns(int[][] state) {
