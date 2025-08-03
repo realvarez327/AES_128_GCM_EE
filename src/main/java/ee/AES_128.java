@@ -60,7 +60,7 @@ public class AES_128 {
 
 
     @SuppressWarnings("DataFlowIssue")
-    static int[] cipher(String key, int[][] state) {
+    public static int[] cipher(String key, int[][] state) {
         int[][] w = keyExpansion(plaintextTo2DIntArray(key));
         state = addRoundKey(state, new int[][]{
                 {w[0][0], w[0][1], w[0][2], w[0][3]},

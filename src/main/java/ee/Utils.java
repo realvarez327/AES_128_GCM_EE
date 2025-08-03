@@ -48,14 +48,61 @@ public class Utils {
         return textReturn;
     }
 
+    public static int bitsetToInteger(BitSet input){
+        //get one bitset, give one integer
+        int toReturn = 0;
+        byte[] byteVersionOfInput = input.toByteArray();
+        toReturn = byteVersionOfInput[1];
+        toReturn <<= 8;
+        toReturn ^= byteVersionOfInput[0];
+        return toReturn;
+    }
+
+    public static BitSet multiplicationBlock(BitSet X, BitSet Y){
+        final BitSet R = new BitSet(128);
+        R.set(121);
+        R.set(125, 127);
+        BitSet Z = new BitSet(128);
+        BitSet V = Y;
+        for (int i = 0; i < 128; i++) {
+            if(X.get(i)){
+                Z.xor(V);
+            }
+            V = V.get(1, 127); //right shift by 1
+            if(V.get(0)){
+              V.xor(R);
+            }
+        }
+        return Z;
+    }
+
     //todo: Implement this
     static int[][] bitsetToTwoDimensionalIntArray(BitSet bitSet){
         return new int[][]{{0}};
     }
 
-    //todo: Implement this
     static BitSet intLinearArrayToBitset(int[] input){
-        return new BitSet(2);
+        BitSet workingOn = new BitSet(input.length*16);
+        int curr = 0;
+        for (int i = 0; i < input.length * 16; i++) {
+            curr= input[i/16];
+            if((curr>>>(i%16))==1){
+                workingOn.set(i);
+            }
+        }
+        return workingOn;
+    }
+
+    public static int divCeil(int a, int divisor){
+        int remainder = a% divisor;
+        if(remainder != 0) {
+            a += remainder;
+        }
+        return a/divisor;
+    }
+//todo implement
+    public static String bitsetToString(BitSet input){
+        return "h";
     }
 
     static BitSet stringToBitset(String input){
