@@ -76,11 +76,6 @@ public class Utils {
         return Z;
     }
 
-    //todo: Implement this
-    static int[][] bitsetToTwoDimensionalIntArray(BitSet bitSet){
-        return new int[][]{{0}};
-    }
-
     static BitSet intLinearArrayToBitset(int[] input){
         BitSet workingOn = new BitSet(input.length*16);
         int curr = 0;
@@ -92,6 +87,58 @@ public class Utils {
         }
         return workingOn;
     }
+    public static int bitSetToInt(BitSet b){
+        int toReturn = 0;
+        for (int i = 0; i < 16; i++) {
+            if(b.get(i)){
+                toReturn |= (1<<i);
+            }
+        }
+        return toReturn;
+    }
+
+    //todo ask for review, will there be repeat bits?
+    public static int[][] bitsetToTwoDimensionalIntArray(BitSet input){
+        final int[][] toReturn = new int[4][4];
+        for (int i = 0; i < input.length(); i++) {
+            if(i<input.length()-16){
+                toReturn[i%4][i/4]= bitSetToInt(input.get(16*(i-1), 16*i));
+            }else{
+                toReturn[i%4][i/4]= bitSetToInt(input.get(16*(i-1), input.length()-1));
+            }
+        }
+        return toReturn;
+    }
+
+    public static BitSet twoDimensionalIntArrayToBitset(int[][] in){
+        BitSet toReturn = new BitSet();
+        int k = 0;
+        for (int i = 0; i < 16; i++) {
+            //this is the bad and slow version
+            BitSet toAddOn = intToBitset( in[i%4][i/4]);
+            int addingOnHighestSet = toAddOn.nextSetBit(0);
+            while (addingOnHighestSet<16) {
+                toReturn.set((16*k) + addingOnHighestSet);
+                addingOnHighestSet= toAddOn.nextSetBit(addingOnHighestSet+1);
+            }
+            k++;
+        }
+
+        return toReturn;
+    }
+
+
+
+    //this sucks, todo redo post review
+    public static BitSet intToBitset(int in){
+        BitSet toReturn = new BitSet(16);
+        for (int i = 0; i < 16; i++) {
+            if((in>>i)%2==0){
+                toReturn.set(i);
+            }
+        }
+        return toReturn;
+    }
 
     public static int divCeil(int a, int divisor){
         int remainder = a% divisor;
@@ -99,10 +146,6 @@ public class Utils {
             a += remainder;
         }
         return a/divisor;
-    }
-//todo implement
-    public static String bitsetToString(BitSet input){
-        return "h";
     }
 
     static BitSet stringToBitset(String input){
@@ -167,5 +210,9 @@ public class Utils {
             index++;
         }
         return index - 1;
+    }
+
+    public static String bitsetToString(BitSet in) {
+        return Integer.toBinaryString(bitsetToInteger(in));
     }
 }

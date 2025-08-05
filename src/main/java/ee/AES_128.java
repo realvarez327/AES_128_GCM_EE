@@ -1,6 +1,8 @@
 package ee;
 
 
+import java.util.BitSet;
+
 import static ee.Utils.*;
 
 public class AES_128 {
@@ -59,8 +61,52 @@ public class AES_128 {
     };
 
 
+
+    //returns bitset also
+    public static BitSet cipherBitSetState(String key, BitSet inputState) {
+        int[][] state = bitsetToTwoDimensionalIntArray(inputState);
+        int[][] w = keyExpansion(plaintextTo2DIntArray(key));
+        state = addRoundKey(state, new int[][]{
+                {w[0][0], w[0][1], w[0][2], w[0][3]},
+                {w[1][0], w[1][1], w[1][2], w[1][3]},
+                {w[2][0], w[2][1], w[2][2], w[2][3]},
+                {w[3][0], w[3][1], w[3][2], w[3][3]}
+        });
+        for (int round = 1; round < Nr; round++) {
+            //do subBytes for each byte in state
+            for (int r = 0; r < 4; r++) {
+                for (int c = 0; c < 4; c++) {
+                    state[r][c] = subBytes(state[r][c]);
+                }
+            }
+            state = shiftRows(state);
+            state = mixColumns(state);
+            state = addRoundKey(state, new int[][]{
+                    {w[0][4 * round], w[0][(4 * round) + 1], w[0][(4 * round) + 2], w[0][(4 * round) + 3]},
+                    {w[1][4 * round], w[1][(4 * round) + 1], w[1][(4 * round) + 2], w[1][(4 * round) + 3]},
+                    {w[2][4 * round], w[2][(4 * round) + 1], w[2][(4 * round) + 2], w[2][(4 * round) + 3]},
+                    {w[3][4 * round], w[3][(4 * round) + 1], w[3][(4 * round) + 2], w[3][(4 * round) + 3]}
+            });
+        }
+        for (int r = 0; r < 4; r++) {
+            for (int c = 0; c < 4; c++) {
+                state[r][c] = subBytes(state[r][c]);
+            }
+        }
+        state = shiftRows(state);
+
+        state = addRoundKey(state, new int[][]{
+                {w[0][(4 * Nr)], w[0][(4 * Nr) + 1], w[0][(4 * Nr) + 2], w[0][(4 * Nr) + 3]},
+                {w[1][(4 * Nr)], w[1][(4 * Nr) + 1], w[1][(4 * Nr) + 2], w[1][(4 * Nr) + 3]},
+                {w[2][(4 * Nr)], w[2][(4 * Nr) + 1], w[2][(4 * Nr) + 2], w[2][(4 * Nr) + 3]},
+                {w[3][(4 * Nr)], w[3][(4 * Nr) + 1], w[3][(4 * Nr) + 2], w[3][(4 * Nr) + 3]}
+        });
+        return twoDimensionalIntArrayToBitset(state);
+    }
+
+
     @SuppressWarnings("DataFlowIssue")
-    public static int[] cipher(String key, int[][] state) {
+    public static int[] cipherIntState(String key, int[][] state) {
         int[][] w = keyExpansion(plaintextTo2DIntArray(key));
         state = addRoundKey(state, new int[][]{
                 {w[0][0], w[0][1], w[0][2], w[0][3]},
