@@ -1,8 +1,6 @@
 package ee;
 
 
-import java.util.BitSet;
-
 import static ee.Utils.*;
 
 public class AES_128 {
@@ -63,6 +61,7 @@ public class AES_128 {
 
 
     //returns bitset also
+    @SuppressWarnings("DataFlowIssue")
     public static BetterBitSet cipherBitSetState(String key, BetterBitSet inputState) {
         int[][] state = bitsetToTwoDimensionalIntArray(inputState);
         int[][] w = keyExpansion(plaintextTo2DIntArray(key));

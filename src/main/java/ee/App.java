@@ -1,8 +1,5 @@
 package ee;
 
-import static ee.AES_128.*;
-import static ee.Utils.*;
-
 public class App {
 
     static String keyString = "First Try of AES";

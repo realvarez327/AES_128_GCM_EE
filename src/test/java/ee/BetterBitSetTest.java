@@ -1,9 +1,6 @@
 package ee;
 
 import org.junit.jupiter.api.Test;
-
-import java.util.BitSet;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 public class BetterBitSetTest {

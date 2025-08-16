@@ -46,17 +46,21 @@ public class BetterBitSet extends BitSet {
         }
         return toReturn;
     }
+    //todo test
     public static BetterBitSet concatenate(BitSet first,int bitsFirst,  BitSet second, int bitsSecond){
         final int lengthOfFirst = first.length();
         final int lengthOfSecond = second.length();
         if (lengthOfSecond>bitsSecond){
             throw new RuntimeException("second bitset is larger than expected");
         }
+        if (lengthOfFirst>bitsFirst){
+            throw new RuntimeException("first bitset longer than expected");
+        }
 
         final BetterBitSet toReturn = (BetterBitSet) first.clone();
         int highestSetIndexOfSecond = second.nextSetBit(0);
         while ((highestSetIndexOfSecond<lengthOfSecond)&&highestSetIndexOfSecond!=-1){
-            toReturn.set(highestSetIndexOfSecond+lengthOfFirst);
+            toReturn.set(highestSetIndexOfSecond+bitsFirst);
             highestSetIndexOfSecond = second.nextSetBit(highestSetIndexOfSecond+1);
         }
         return toReturn;

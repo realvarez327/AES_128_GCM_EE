@@ -118,13 +118,6 @@ public class GCM {
         return toReturn;
     }
 
-    private static String stringLeadingZeroRep(String binaryIn){
-        if(binaryIn.length()<64){
-            return "0".repeat(64-binaryIn.length())+binaryIn;
-        }
-        return binaryIn;
-    }
-
     //need to set key before this point
     public EncryptionReturnPackage gcmEncryption(String P, String IV, String AAD) {
         thirtyOneZeroesAnd1.set(0);//follow with 31 0's
