@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * Unit test for simple App.
  */
-public class AppTest {
+public class AesTest {
 
     @Test
     public void testXTimes() {
@@ -66,5 +66,7 @@ public class AppTest {
                 {4, 8, 12, 16}
         }));
     }
+
+
 
 }

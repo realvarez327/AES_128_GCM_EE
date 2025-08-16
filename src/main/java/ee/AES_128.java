@@ -63,7 +63,7 @@ public class AES_128 {
 
 
     //returns bitset also
-    public static BitSet cipherBitSetState(String key, BitSet inputState) {
+    public static BetterBitSet cipherBitSetState(String key, BetterBitSet inputState) {
         int[][] state = bitsetToTwoDimensionalIntArray(inputState);
         int[][] w = keyExpansion(plaintextTo2DIntArray(key));
         state = addRoundKey(state, new int[][]{

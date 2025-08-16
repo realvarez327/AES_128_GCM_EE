@@ -1,4 +1,4 @@
-package ee;
+package ee; //a immaculate, stellar, innovative piece of code
 
 import java.util.Arrays;
 import java.util.BitSet;
@@ -48,10 +48,19 @@ public class Utils {
         return textReturn;
     }
 
-    public static int bitsetToInteger(BitSet input){
+    public static int bitsetToInteger(BetterBitSet input){
         //get one bitset, give one integer
         int toReturn = 0;
         byte[] byteVersionOfInput = input.toByteArray();
+        for(int i = 0; i < byteVersionOfInput.length; i++){
+            toReturn <<= 8;
+            if(i< byteVersionOfInput.length-1){
+                toReturn ^= byteVersionOfInput[i+1];
+            }else {
+                toReturn ^= byteVersionOfInput[i];
+            }
+        }
+
         toReturn = byteVersionOfInput[1];
         toReturn <<= 8;
         toReturn ^= byteVersionOfInput[0];
@@ -76,9 +85,9 @@ public class Utils {
         return Z;
     }
 
-    static BitSet intLinearArrayToBitset(int[] input){
-        BitSet workingOn = new BitSet(input.length*16);
-        int curr = 0;
+    public static BetterBitSet intLinearArrayToBitset(int[] input){
+        BetterBitSet workingOn = new BetterBitSet();
+        int curr;
         for (int i = 0; i < input.length * 16; i++) {
             curr= input[i/16];
             if((curr>>>(i%16))==1){
@@ -87,31 +96,22 @@ public class Utils {
         }
         return workingOn;
     }
-    public static int bitSetToInt(BitSet b){
-        int toReturn = 0;
-        for (int i = 0; i < 16; i++) {
-            if(b.get(i)){
-                toReturn |= (1<<i);
-            }
-        }
-        return toReturn;
-    }
 
     //todo ask for review, will there be repeat bits?
-    public static int[][] bitsetToTwoDimensionalIntArray(BitSet input){
+    public static int[][] bitsetToTwoDimensionalIntArray(BetterBitSet input){
         final int[][] toReturn = new int[4][4];
         for (int i = 0; i < input.length(); i++) {
             if(i<input.length()-16){
-                toReturn[i%4][i/4]= bitSetToInt(input.get(16*(i-1), 16*i));
+                toReturn[i%4][i/4]= bitsetToInteger((BetterBitSet) input.get(16*(i), 16*(i+1)));
             }else{
-                toReturn[i%4][i/4]= bitSetToInt(input.get(16*(i-1), input.length()-1));
+                toReturn[i%4][i/4]= bitsetToInteger((BetterBitSet) input.get(16*(i), input.length()-1));
             }
         }
         return toReturn;
     }
 
-    public static BitSet twoDimensionalIntArrayToBitset(int[][] in){
-        BitSet toReturn = new BitSet();
+    public static BetterBitSet twoDimensionalIntArrayToBitset(int[][] in){
+        BetterBitSet toReturn = new BetterBitSet();
         int k = 0;
         for (int i = 0; i < 16; i++) {
             //this is the bad and slow version
@@ -126,8 +126,6 @@ public class Utils {
 
         return toReturn;
     }
-
-
 
     //this sucks, todo redo post review
     public static BitSet intToBitset(int in){
@@ -146,21 +144,6 @@ public class Utils {
             a += remainder;
         }
         return a/divisor;
-    }
-
-    static BitSet stringToBitset(String input){
-        BitSet toReturn = new BitSet(input.length()*16);
-        StringBuilder inputAsBitString = new StringBuilder();
-        // not setting capacity bc don't want it to be too big
-        for (int i = 0; i < input.length(); i++) {
-            inputAsBitString.append(Integer.toBinaryString(input.charAt(i)));
-        }
-        for (int i = 0; i < inputAsBitString.length(); i++) {
-            if(inputAsBitString.charAt(i)=='1'){
-                toReturn.set(i);
-            }
-        }
-        return toReturn;
     }
 
     static int xTimes(int a) {
@@ -212,7 +195,27 @@ public class Utils {
         return index - 1;
     }
 
-    public static String bitsetToString(BitSet in) {
+    public static String bitsetToBinaryString(BetterBitSet in) {
         return Integer.toBinaryString(bitsetToInteger(in));
+    }
+
+    public static BitSet concatenate(BitSet first, int lengthOfFirst,BitSet second, int lengthOfSecond){
+        BitSet toReturn = first;
+        int highestSetIndexOfSecond = second.nextSetBit(0);
+        while (highestSetIndexOfSecond<lengthOfSecond){
+            toReturn.set(highestSetIndexOfSecond+lengthOfFirst-1);
+            highestSetIndexOfSecond = second.nextSetBit(highestSetIndexOfSecond+1);
+        }
+        return toReturn;
+    }
+
+    public static BetterBitSet binaryStringToBetterBitSet(String in){
+        BetterBitSet toReturn = new BetterBitSet();
+        int index = in.indexOf('1');
+        while (index>=0){
+            toReturn.set(index);
+            index=in.indexOf('1',index+1);
+        }
+        return toReturn;
     }
 }
