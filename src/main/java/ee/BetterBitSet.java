@@ -8,24 +8,43 @@ public class BetterBitSet extends BitSet {
         super();
     }
 
+    public static String bitSetToAsciiString(BetterBitSet input){
+        int index = 0;
+        StringBuilder toReturn = new StringBuilder();
+        while((16*index)<=input.length()-1){
+            toReturn.append((char) input.get(index, index*16).bitsetToInteger());
+            index ++;
+        }
+        return toReturn.toString();
+    }
+    public  String bitSetToAsciiString(){
+        int index = 0;
+        StringBuilder toReturn = new StringBuilder();
+        while((16*index)<=this.length()-1){
+            toReturn.append((char) this.get(index, index*16).bitsetToInteger());
+            index ++;
+        }
+        return toReturn.toString();
+    }
+
     public static BetterBitSet asciiStringToBitset(String input){//todo double check all usages are correct
         BetterBitSet toReturn = new BetterBitSet();
         StringBuilder inputAsBitString = new StringBuilder();
         for (int i = 0; i < input.length(); i++) {
             char current = input.charAt(i);
+            StringBuilder toAddOn = new StringBuilder(Integer.toBinaryString(current));
+            toAddOn = toAddOn.reverse();
+            inputAsBitString.append(toAddOn);
             if(current < 0x80) {
                 inputAsBitString.append("0");
                 if (current <0x40){
                     inputAsBitString.append("0");
                 }
             }
-                inputAsBitString.append(Integer.toBinaryString(current));
-
-
+            inputAsBitString.append("0".repeat(inputAsBitString.length()%16));
         }
-        System.out.println(inputAsBitString);
         int index = inputAsBitString.indexOf("1");
-        while(index >=0){
+        while(index !=-1){
             toReturn.set(index);
             index = inputAsBitString.indexOf("1", index +1);
         }
@@ -66,16 +85,29 @@ public class BetterBitSet extends BitSet {
         return toReturn;
     }
     public int bitsetToInteger() {
-        //get one bitset, give one integer
         int toReturn = 0;
-        byte[] byteVersionOfInput = this.toByteArray();
-        for(int i = byteVersionOfInput.length-1; i > -1; i--){
-            toReturn <<= 8;
-            toReturn ^=byteVersionOfInput[i];
+        int index = this.nextSetBit(0);
+
+        System.out.println(this.length());
+        while (index!=-1){
+            toReturn += (int) Math.pow(2,index);
+            index = this.nextSetBit(index +1);
         }
+
         return toReturn;
     }
+    public static int bitsetToInteger(BetterBitSet input){
+        int toReturn = 0;
+        int index = input.nextSetBit(0);
 
+        System.out.println(input.length());
+        while (index!=-1){
+            toReturn += (int) Math.pow(2, input.length()-1-index);
+            index = input.nextSetBit(index +1);
+        }
+
+        return toReturn;
+    }
 
     public boolean get(int onlyIndex){
         return super.get(onlyIndex);

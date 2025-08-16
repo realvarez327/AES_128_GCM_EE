@@ -52,29 +52,32 @@ public class GCM {
     }
 
     private BetterBitSet GCTR(BetterBitSet ICB, BetterBitSet X) {
-        int xLength = X.length();
-        int[] nAndU = getNAndU(xLength);
-        BetterBitSet[] meddlingY = new BetterBitSet[nAndU[0]];
         if (X.isEmpty()) {
             return new BetterBitSet();
         }
 
-        BetterBitSet[] CB = new BetterBitSet[nAndU[0] + 1];
-        CB[1] = ICB;
-        for (int i = 2; i <= nAndU[0]; i++) {
-            CB[i] = incr(CB[i - 1]);
-        }
-        for (int i = 1; i < nAndU[0]; i++) {
-            BetterBitSet xorComponent = AES_128.cipherBitSetState(key, CB[i]);
-            X.get((i-1)*128, 128*i).xor(xorComponent);
-            meddlingY[i] =X.get((i-1)*128, 128*i);
-            X.get((i-1)*128, 128*i).xor(xorComponent);
+        int xLength = X.length();
+        int n = Utils.divCeil(xLength,128);
+        int[] nAndU = getNAndU(xLength);
+        BetterBitSet[] meddlingY = new BetterBitSet[nAndU[0]];
+        BetterBitSet[] CB = new BetterBitSet[n];
+        CB[0] = ICB;
+
+        for (int i = 2; i <= n; i++) {
+            CB[i-1] = incr(CB[i - 2]);
         }
 
-        BitSet cipherResult = MSB(nAndU[1], AES_128.cipherBitSetState(key, CB[nAndU[0]]));
-        X.get((128)*(nAndU[0]-1),xLength-1).xor(cipherResult);
-        meddlingY[nAndU[0]] = X.get((128)*(nAndU[0]-1),xLength-1);
-        X.get((128)*(nAndU[0]-1),xLength-1).xor(cipherResult);
+        for (int i = 1; i < n-1; i++) {
+            BetterBitSet xorComponent = AES_128.cipherBitSetState(key, CB[i-1]);
+            X.get((i-1)*128, 128*i).xor(xorComponent);
+            meddlingY[i-1] =X.get((i-1)*128, 128*i);
+            X.get((i-1)*128, 128*i).xor(xorComponent);//return to normal
+        }
+
+        BitSet cipherResult = MSB(nAndU[1], AES_128.cipherBitSetState(key, CB[n-1]));
+        X.get((128)*(n-1),xLength-1).xor(cipherResult);
+        meddlingY[n-1] = X.get((128)*(n-1),xLength-1);
+        X.get((128)*(n-1),xLength-1).xor(cipherResult);//return to normal
         
         BetterBitSet Y = new BetterBitSet();
         for (int i = 0; i < meddlingY.length; i++) {
@@ -98,17 +101,6 @@ public class GCM {
         return input.get(length - t, length - 1);
     }
 
-    private static BetterBitSet[] getArrayFormOfPlaintext(int[] nAndU, String P) {
-        StringBuilder plaintextMeddlingVersion = new StringBuilder(P);
-        BetterBitSet[] toReturn = new BetterBitSet[nAndU[0] + 1];
-        for (int i = 0; i < nAndU[0]; i++) {
-            toReturn[i] = asciiStringToBitset(plaintextMeddlingVersion.substring(0, 8));
-            plaintextMeddlingVersion.delete(0, 8);
-        }
-        toReturn[nAndU[0]] = asciiStringToBitset(String.valueOf(plaintextMeddlingVersion));
-        return toReturn;
-    }
-
     //review is this necessary
     private static String intLeadingZeroBinaryRep(int in){
         String toReturn = Integer.toBinaryString(in);
@@ -119,10 +111,24 @@ public class GCM {
     }
 
     //need to set key before this point
-    public EncryptionReturnPackage gcmEncryption(String P, String IV, String AAD) {
+    public EncryptionReturnPackage gcmEncryption(String P, String IV, String givenA) {
+        if(key.isEmpty()){
+            throw new RuntimeException("You forgot to set a key. You need to set the GCM key before trying to encrypt!");
+        }
+        BetterBitSet bitsetP = BetterBitSet.asciiStringToBitset(P);
+        if (bitsetP.length()> 68719476480L){
+            throw new RuntimeException("Message too large.");
+        }
+        //not checking if givenA has valid length, limit is longer than a long, so unlikely
+        BetterBitSet IVbitSet = asciiStringToBitset(IV);
+        if(IVbitSet.isEmpty()){
+            throw new RuntimeException("You need to provide an initialization vector.");
+            //not checking if too long, has same limit as A
+        }
+
         thirtyOneZeroesAnd1.set(0);//follow with 31 0's
         int[] nAndU = getNAndU(P.length());
-        BetterBitSet[] ArrayP = getArrayFormOfPlaintext(nAndU, P);
+
         BetterBitSet H = Utils.intLinearArrayToBitset(
                 AES_128.cipherIntState(key, new int[][]{
                                 {0, 0, 0, 0},
@@ -132,29 +138,30 @@ public class GCM {
                         }
                 )
         );
-        BetterBitSet IVbitSet = asciiStringToBitset(IV);
+
         BetterBitSet[] J = new BetterBitSet[nAndU[0] + 1];
         J[0] = BetterBitSet.concatenate(IVbitSet, thirtyOneZeroesAnd1,32);
         for (int i = 1; i <= nAndU[0]; i++) {
             //increment it
             J[i] = incr(J[i - 1]);
         }
-        BitSet A = asciiStringToBitset(AAD);
-
+        BitSet A = asciiStringToBitset(givenA);
         BetterBitSet C = GCTR(incr(J[0]), asciiStringToBitset(P));
         int u = 128 * (Utils.divCeil(C.size(), 128)) - C.size();
         int v = 128 * (Utils.divCeil(A.size(), 128)) - A.size();
         BetterBitSet bitSetOfZeroes = new BetterBitSet();
         BetterBitSet argumentForS = BetterBitSet.concatenate(A, bitSetOfZeroes, v);
+        BetterBitSet bitsetA = asciiStringToBitset(intLeadingZeroBinaryRep(givenA.length()*16));
+
         argumentForS = BetterBitSet.concatenate(argumentForS, C, C.length());
         argumentForS = BetterBitSet.concatenate(argumentForS, bitSetOfZeroes, u);
-        BetterBitSet bitsetAAD = asciiStringToBitset(intLeadingZeroBinaryRep(AAD.length()*16));
-        argumentForS = BetterBitSet.concatenate(argumentForS, bitsetAAD, AAD.length()*16);
+        argumentForS = BetterBitSet.concatenate(argumentForS, bitsetA, givenA.length()*16);
         BetterBitSet bitsetC = asciiStringToBitset(intLeadingZeroBinaryRep(C.length()*16));
         argumentForS = BetterBitSet.concatenate(argumentForS, bitsetC, C.length()*16);
+
         BetterBitSet S = GHASH.hash(argumentForS, H);
         BetterBitSet T = MSB(tagLength, GCTR(J[0], S));
-        return new EncryptionReturnPackage(bitsetToBinaryString(C), bitsetToBinaryString(T));
+        return new EncryptionReturnPackage(bitsetToBinaryString(C), bitsetToBinaryString(T), givenA);
 
     }
 
@@ -162,7 +169,7 @@ public class GCM {
     // IV bit length = 96, char length = 6
     public String gcmDecryption(String IV, String C, String A, String T){
         final String FAIL_MESSAGE = "FAIL";
-        if(((IV.length() != 6))||T.length()!=tagLength){//todo add check for C length, once proper length found
+        if(((IV.length() != 6))||T.length()!=tagLength||C.length()*16L  >68719476480L){
             return FAIL_MESSAGE;
         }
         BitSet H = Utils.intLinearArrayToBitset(
@@ -179,13 +186,13 @@ public class GCM {
         int u = 128 * Utils.divCeil(C.length()*16, 128)- (C.length()*16);
         int v = 128 * Utils.divCeil(A.length()*16, 128) -(A.length()*16);
 
-        BitSet bitSetA = asciiStringToBitset(A);
-        BitSet bitsetC = asciiStringToBitset(C);
-        BitSet argumentForS = Utils.concatenate(bitSetA, A.length()*16, new BitSet(v), v);
-        argumentForS = Utils.concatenate(argumentForS, A.length()*16 +v, bitsetC, C.length()*16);
+        BetterBitSet bitSetA = asciiStringToBitset(A);
+        BetterBitSet bitsetC = asciiStringToBitset(C);
+        BetterBitSet argumentForS = BetterBitSet.concatenate(bitSetA, A.length()*16, new BetterBitSet(), v);
+        argumentForS = BetterBitSet.concatenate(argumentForS, A.length()*16 +v, bitsetC, C.length()*16);
         String lenA64 = intLeadingZeroBinaryRep(A.length()*16);
         String lenC64 = intLeadingZeroBinaryRep(C.length()*16);
-        argumentForS = Utils.concatenate(
+        argumentForS = BetterBitSet.concatenate(
                 argumentForS,
                 A.length()*16+v+C.length()*16,
                 Utils.binaryStringToBetterBitSet("0".repeat(u)+lenA64 +lenC64),
@@ -194,7 +201,7 @@ public class GCM {
         BetterBitSet S = GHASH.hash(argumentForS, H);
         BetterBitSet TChanged = MSB(tagLength, GCTR(JZero, S));
         if (T.equals(bitsetToBinaryString(TChanged))){
-            return bitsetToBinaryString(P);
+            return P.bitSetToAsciiString();
         }else {
             return FAIL_MESSAGE;
         }

@@ -1,4 +1,4 @@
-package ee; //a immaculate, stellar, innovative piece of code
+package ee; //an immaculate, stellar, innovative piece of code
 
 import java.util.Arrays;
 import java.util.BitSet;
@@ -48,25 +48,6 @@ public class Utils {
         return textReturn;
     }
 
-    public static int bitsetToInteger(BetterBitSet input){
-        //get one bitset, give one integer
-        int toReturn = 0;
-        byte[] byteVersionOfInput = input.toByteArray();
-        for(int i = 0; i < byteVersionOfInput.length; i++){
-            toReturn <<= 8;
-            if(i< byteVersionOfInput.length-1){
-                toReturn ^= byteVersionOfInput[i+1];
-            }else {
-                toReturn ^= byteVersionOfInput[i];
-            }
-        }
-
-        toReturn = byteVersionOfInput[1];
-        toReturn <<= 8;
-        toReturn ^= byteVersionOfInput[0];
-        return toReturn;
-    }
-
     public static BitSet multiplicationBlock(BitSet X, BitSet Y){
         final BitSet R = new BitSet(128);
         R.set(121);
@@ -85,44 +66,52 @@ public class Utils {
         return Z;
     }
 
+    //review bc huh?
     public static BetterBitSet intLinearArrayToBitset(int[] input){
         BetterBitSet workingOn = new BetterBitSet();
-        int curr;
-        for (int i = 0; i < input.length * 16; i++) {
-            curr= input[i/16];
-            if((curr>>>(i%16))==1){
-                workingOn.set(i);
-            }
+        StringBuilder binaryVersion = new StringBuilder();
+        for (int i = 0; i < input.length; i++) {
+            String toAdd = Integer.toBinaryString(input[i]);
+            binaryVersion.append(toAdd).append("0".repeat(16 - toAdd.length()));
         }
+
+        int index = binaryVersion.indexOf("1", 0);
+        while (index != -1){
+            workingOn.set(index);
+            index = binaryVersion.indexOf("1", index +1);
+        }
+
         return workingOn;
     }
 
     //todo ask for review, will there be repeat bits?
+    //bug -> java.lang.ArrayIndexOutOfBoundsException: Index 4 out of bounds for length 4
     public static int[][] bitsetToTwoDimensionalIntArray(BetterBitSet input){
         final int[][] toReturn = new int[4][4];
-        for (int i = 0; i < input.length(); i++) {
-            if(i<input.length()-16){
-                toReturn[i%4][i/4]= bitsetToInteger((BetterBitSet) input.get(16*(i), 16*(i+1)));
-            }else{
-                toReturn[i%4][i/4]= bitsetToInteger((BetterBitSet) input.get(16*(i), input.length()-1));
-            }
+        int ctr = 0;
+        for(int i = 0; i <(input.length()-1); i+=16){
+            toReturn[ctr%4][ctr/4] = input.get(i,i+15).bitsetToInteger();
+            ctr++;
         }
         return toReturn;
     }
 
+
+    //todo implement
     public static BetterBitSet twoDimensionalIntArrayToBitset(int[][] in){
         BetterBitSet toReturn = new BetterBitSet();
-        int k = 0;
-        for (int i = 0; i < 16; i++) {
-            //this is the bad and slow version
-            BitSet toAddOn = intToBitset( in[i%4][i/4]);
-            int addingOnHighestSet = toAddOn.nextSetBit(0);
-            while (addingOnHighestSet<16) {
-                toReturn.set((16*k) + addingOnHighestSet);
-                addingOnHighestSet= toAddOn.nextSetBit(addingOnHighestSet+1);
-            }
-            k++;
-        }
+//        int k = 0;
+//        for (int i = 0; i < 16; i++) {
+//            //this is the bad and slow version
+//            BitSet toAddOn = intToBitset( in[i%4][i/4]);
+//            int addingOnHighestSet = toAddOn.nextSetBit(0);
+//            while (addingOnHighestSet<16) {
+//                toReturn.set((16*k) + addingOnHighestSet);
+//                addingOnHighestSet= toAddOn.nextSetBit(addingOnHighestSet+1);
+//            }
+//            k++;
+//        }'
+
 
         return toReturn;
     }
@@ -196,17 +185,7 @@ public class Utils {
     }
 
     public static String bitsetToBinaryString(BetterBitSet in) {
-        return Integer.toBinaryString(bitsetToInteger(in));
-    }
-
-    public static BitSet concatenate(BitSet first, int lengthOfFirst,BitSet second, int lengthOfSecond){
-        BitSet toReturn = first;
-        int highestSetIndexOfSecond = second.nextSetBit(0);
-        while (highestSetIndexOfSecond<lengthOfSecond){
-            toReturn.set(highestSetIndexOfSecond+lengthOfFirst-1);
-            highestSetIndexOfSecond = second.nextSetBit(highestSetIndexOfSecond+1);
-        }
-        return toReturn;
+        return Integer.toBinaryString(BetterBitSet.bitsetToInteger(in));
     }
 
     public static BetterBitSet binaryStringToBetterBitSet(String in){

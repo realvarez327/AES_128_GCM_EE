@@ -20,11 +20,14 @@ public class BetterBitSetTest {
 
     @Test
     public void bitsetToInteger(){
-        BetterBitSet tester = new BetterBitSet();
-        tester.set(14);
-        tester.set(13);
-        tester.set(8);
-        assertEquals(24832, tester.bitsetToInteger());
+        BetterBitSet tester = BetterBitSet.asciiStringToBitset("w");
+        int W = 'w';
+        assertEquals(W, BetterBitSet.bitsetToInteger(tester));
+
+        int a = 1;
+        tester.clear();
+        tester.set(0);
+        assertEquals(a, tester.bitsetToInteger());
 
     }
 
@@ -32,27 +35,34 @@ public class BetterBitSetTest {
     public void asciiStringToBitset(){
         String test = " ";//00100000
         BetterBitSet bbs = new BetterBitSet();
-        bbs.set(2);
+        bbs.set(5);
         BetterBitSet returned = BetterBitSet.asciiStringToBitset(test);
-        System.out.println(returned.bitsetToInteger());
         bbs.xor(returned);
+        System.out.println(bbs);
         assertTrue((bbs.isEmpty()));
 
         bbs.clear();
         returned.clear();
 
-        test = "a bc";//01100001001000000110001001100011
-        //set's toIndex is index AFTER last set
-        bbs.set(1,3,true);
-        bbs.set(7);
-        bbs.set(10);
-        bbs.set(17,19,true);
-        bbs.set(22);
-        bbs.set(25,27, true);
-        bbs.set(30,32,true);
+        test = "w";
         returned = BetterBitSet.asciiStringToBitset(test);
-        bbs.xor(returned);
-        assertTrue(bbs.isEmpty());
+        assertEquals(test,returned.bitSetToAsciiString());
+
+        bbs.clear();
+        returned.clear();
+
+        test = "a bc";
+        //set's toIndex is index AFTER last set
+        returned = BetterBitSet.asciiStringToBitset(test);
+        assertEquals(test, returned.bitSetToAsciiString());
+
+
+
+
+    }
+
+    @Test
+    public void bitSetToAsciiString(){
 
     }
 }
