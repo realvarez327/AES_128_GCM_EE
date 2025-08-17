@@ -27,7 +27,6 @@ public class Utils {
                 out[r + (width * c)] = input[r][c];
             }
         }
-        System.out.println(Arrays.toString(out));
         return out;
     }
 
@@ -48,12 +47,12 @@ public class Utils {
         return textReturn;
     }
 
-    public static BitSet multiplicationBlock(BitSet X, BitSet Y){
-        final BitSet R = new BitSet(128);
+    public static BetterBitSet multiplicationBlock(BetterBitSet X, BetterBitSet Y){
+        final BetterBitSet R = new BetterBitSet();
         R.set(121);
         R.set(125, 127);
-        BitSet Z = new BitSet(128);
-        BitSet V = Y;
+        BetterBitSet Z = new BetterBitSet();
+        BetterBitSet V = Y;
         for (int i = 0; i < 128; i++) {
             if(X.get(i)){
                 Z.xor(V);
@@ -126,10 +125,12 @@ public class Utils {
         return toReturn;
     }
 
+    //bug
     public static int divCeil(int a, int divisor){
         int remainder = a% divisor;
         if(remainder != 0) {
-            a += remainder;
+            a -= remainder;
+            a+=divisor;
         }
         return a/divisor;
     }

@@ -28,4 +28,12 @@ public class UtilsTest {
         checker.set(32,34,true);
         assertEquals(checker, Utils.intLinearArrayToBitset(tester));
     }
+
+    @Test
+    public void divCeil(){
+        int a = 774;
+        int b = 128;
+        int res = Utils.divCeil(a,b);
+        assertEquals(7, res);
+    }
 }

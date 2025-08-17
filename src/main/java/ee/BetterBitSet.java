@@ -14,14 +14,12 @@ public class BetterBitSet extends BitSet {
         int intform = 0;
         while ((15 + index) <= input.length() - 1) {
             intform = input.get(index, index + 16).bitsetToInteger();
-            System.out.println((char) intform);
             toReturn.append((char) intform);
             index+= 16;
         }
 
         if (index < input.length() - 1) {
             intform = input.get(index, input.length()).bitsetToInteger();
-            System.out.println((char) intform);
             toReturn.append((char) intform);
         }
 
@@ -34,14 +32,12 @@ public class BetterBitSet extends BitSet {
         int intform = 0;
         while ((15 + index) <= this.length() - 1) {
             intform = this.get(index, index + 16).bitsetToInteger();
-            System.out.println((char) intform);
             toReturn.append((char) intform);
             index+= 16;
         }
 
         if (index < this.length() - 1) {
             intform = this.get(index, this.length()).bitsetToInteger();
-            System.out.println((char) intform);
             toReturn.append((char) intform);
         }
 
@@ -90,18 +86,9 @@ public class BetterBitSet extends BitSet {
 
     //todo test
     public static BetterBitSet concatenate(BitSet first, int bitsFirst, BitSet second, int bitsSecond) {
-        final int lengthOfFirst = first.length();
-        final int lengthOfSecond = second.length();
-        if (lengthOfSecond > bitsSecond) {
-            throw new RuntimeException("second bitset is larger than expected");
-        }
-        if (lengthOfFirst > bitsFirst) {
-            throw new RuntimeException("first bitset longer than expected");
-        }
-
         final BetterBitSet toReturn = (BetterBitSet) first.clone();
         int highestSetIndexOfSecond = second.nextSetBit(0);
-        while ((highestSetIndexOfSecond < lengthOfSecond) && highestSetIndexOfSecond != -1) {
+        while ((highestSetIndexOfSecond < bitsSecond) && highestSetIndexOfSecond != -1) {
             toReturn.set(highestSetIndexOfSecond + bitsFirst);
             highestSetIndexOfSecond = second.nextSetBit(highestSetIndexOfSecond + 1);
         }
@@ -112,7 +99,6 @@ public class BetterBitSet extends BitSet {
         int toReturn = 0;
         int index = this.nextSetBit(0);
 
-        System.out.println(this.length());
         while (index != -1) {
             toReturn += (int) Math.pow(2, index);
             index = this.nextSetBit(index + 1);
@@ -125,7 +111,6 @@ public class BetterBitSet extends BitSet {
         int toReturn = 0;
         int index = input.nextSetBit(0);
 
-        System.out.println(input.length());
         while (index != -1) {
             toReturn += (int) Math.pow(2, input.length() - 1 - index);
             index = input.nextSetBit(index + 1);
