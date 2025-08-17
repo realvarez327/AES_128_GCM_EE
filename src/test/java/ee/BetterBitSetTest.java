@@ -34,35 +34,47 @@ public class BetterBitSetTest {
     @Test
     public void asciiStringToBitset(){
         String test = " ";//00100000
-        BetterBitSet bbs = new BetterBitSet();
-        bbs.set(5);
         BetterBitSet returned = BetterBitSet.asciiStringToBitset(test);
-        bbs.xor(returned);
-        System.out.println(bbs);
-        assertTrue((bbs.isEmpty()));
+        assertEquals(test, returned.bitSetToAsciiString());
 
-        bbs.clear();
         returned.clear();
 
-        test = "w";
-        returned = BetterBitSet.asciiStringToBitset(test);
-        assertEquals(test,returned.bitSetToAsciiString());
-
-        bbs.clear();
-        returned.clear();
-
-        test = "a bc";
-        //set's toIndex is index AFTER last set
+        test = "a";
         returned = BetterBitSet.asciiStringToBitset(test);
         assertEquals(test, returned.bitSetToAsciiString());
 
+        returned.clear();
 
+        test = "ab";
+        returned = BetterBitSet.asciiStringToBitset(test);
+        assertEquals(test, returned.bitSetToAsciiString());
 
+        returned.clear();
 
+        test = "b ";
+        returned = BetterBitSet.asciiStringToBitset(test);
+        assertEquals(test, returned.bitSetToAsciiString());
+
+        returned.clear();
+
+        test = "ab x";
+        returned = BetterBitSet.asciiStringToBitset(test);
+        assertEquals(test, returned.bitSetToAsciiString());
     }
 
     @Test
     public void bitSetToAsciiString(){
+        String tester = "a";
+        BetterBitSet bbs = BetterBitSet.asciiStringToBitset(tester);
+        String returned = bbs.bitSetToAsciiString();
+        assertEquals(tester, returned);
+
+        tester = "hello";
+        bbs.clear();
+        bbs = BetterBitSet.asciiStringToBitset(tester);
+        returned = bbs.bitSetToAsciiString();
+        assertEquals(tester, returned);
+
 
     }
 }

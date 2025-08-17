@@ -50,7 +50,7 @@ public class GCM {
         }
         return input;
     }
-
+//Bug
     private BetterBitSet GCTR(BetterBitSet ICB, BetterBitSet X) {
         if (X.isEmpty()) {
             return new BetterBitSet();
@@ -74,7 +74,9 @@ public class GCM {
             X.get((i-1)*128, 128*i).xor(xorComponent);//return to normal
         }
 
+        //Bug
         BitSet cipherResult = MSB(nAndU[1], AES_128.cipherBitSetState(key, CB[n-1]));
+
         X.get((128)*(n-1),xLength-1).xor(cipherResult);
         meddlingY[n-1] = X.get((128)*(n-1),xLength-1);
         X.get((128)*(n-1),xLength-1).xor(cipherResult);//return to normal
@@ -91,14 +93,14 @@ public class GCM {
         return Y;
     }
 
-    private static BetterBitSet MSB(int t, BetterBitSet input) {
+    public static BetterBitSet MSB(int t, BetterBitSet input) {
         int length = input.length();
         if (t == 1) {
             BetterBitSet toReturn = new BetterBitSet();
             toReturn.set(input.get(length - 1) ? 1 : 0);
             return toReturn;
         }
-        return input.get(length - t, length - 1);
+        return input.get(length - t, length);
     }
 
     //review is this necessary

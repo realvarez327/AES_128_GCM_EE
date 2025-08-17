@@ -24,7 +24,7 @@ public class UtilsTest {
         System.out.println(Utils.intLinearArrayToBitset(tester));
         BetterBitSet checker = new BetterBitSet();
         checker.set(0);
-        checker.set(16);
+        checker.set(17);
         checker.set(32,34,true);
         assertEquals(checker, Utils.intLinearArrayToBitset(tester));
     }

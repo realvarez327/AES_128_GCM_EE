@@ -66,13 +66,12 @@ public class Utils {
         return Z;
     }
 
-    //review bc huh?
     public static BetterBitSet intLinearArrayToBitset(int[] input){
         BetterBitSet workingOn = new BetterBitSet();
         StringBuilder binaryVersion = new StringBuilder();
         for (int i = 0; i < input.length; i++) {
-            String toAdd = Integer.toBinaryString(input[i]);
-            binaryVersion.append(toAdd).append("0".repeat(16 - toAdd.length()));
+            StringBuilder toAdd = new StringBuilder(Integer.toBinaryString(input[i])).reverse();
+            binaryVersion.append(toAdd).append("0".repeat(16- toAdd.length()));
         }
 
         int index = binaryVersion.indexOf("1", 0);
