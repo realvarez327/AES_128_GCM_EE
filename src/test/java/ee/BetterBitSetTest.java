@@ -6,15 +6,15 @@ import static org.junit.jupiter.api.Assertions.*;
 public class BetterBitSetTest {
     @Test
     public void concatenate() {
-        BetterBitSet first = new BetterBitSet(); //1101
+        BetterBitSet first = new BetterBitSet(4); //1101
         first.set(0);
         first.set(1);
         first.set(3);
-        BetterBitSet second = new BetterBitSet(); //101
-        second.set(5);
-        second.set(7);
-        BetterBitSet betterBitSet =  BetterBitSet.concatenate(first, second, 8);
-        assertEquals(0b101000001011,betterBitSet.bitsetToInteger());
+        BetterBitSet second = new BetterBitSet(4); //0001
+        second.set(0);
+        BetterBitSet betterBitSet =  BetterBitSet.concatenate(first, second, 4);
+        assertEquals(0b10110001, betterBitSet.bitsetToInteger());
+        //should be 177
 
     }
 

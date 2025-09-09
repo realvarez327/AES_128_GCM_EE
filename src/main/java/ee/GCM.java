@@ -1,16 +1,16 @@
-package ee; //successful
+package ee;
 
 
 import java.util.BitSet;
 
-import static ee.BetterBitSet.asciiStringToBitset;
+import static ee.BetterBitSet.*;
 import static ee.Utils.*;
 
 public class GCM {
 
     private String key;
     private final static int tagLength = 128;
-    private final static BetterBitSet thirtyOneZeroesAnd1 = new BetterBitSet();
+    private final static BetterBitSet thirtyOneZeroesAnd1 = new BetterBitSet(32);
 
     public void setKey(String K){
         key = K;
@@ -20,6 +20,7 @@ public class GCM {
         //calculate length of P in bits
         int[] nAndU = new int[2];
         if (pLength % 128 == 0) {
+            //review shouldn't this be -1
             nAndU[0] = (pLength) / 128;
             nAndU[1] = 128;
             return nAndU;
@@ -31,60 +32,50 @@ public class GCM {
         return nAndU;
     }
 
-    private static BetterBitSet incr(BetterBitSet input) {
-        //input is 16 bytes
-        final int s = 5;
-
+    public static BetterBitSet inc32(BetterBitSet input) {
+        final int s = 32;
+        final long twoPowerOfS = 4294967296L;
         final int length = input.length();
-        final BitSet lsb = input.get(length - s-1, length-1);
-
-        if (input.get(length - 6)) {
-            //check if "32" bit is set
-            input.set(length - 6, length - 1, false);
-        } else {
-            //increment last integer spot
-            String str = input.toString().substring(length - 1 - 5, length - 1);
-            for (int i = 0; i < str.length(); i++) {
-                input.set(length - 6 + i, str.charAt(i) != '0');
-            }
-        }
+        BetterBitSet MSBsection = MSB(length-s, input);
+        BetterBitSet LSBsection = input.get(0, s);
+        long longRep = LSBsection.bitsetToLong();
+        longRep = (longRep+1)&(twoPowerOfS-1);
+        LSBsection = Utils.longToBitset(longRep,s);
+        input = BetterBitSet.concatenate(MSBsection, LSBsection, LSBsection.length());
         return input;
     }
 
     private BetterBitSet GCTR(BetterBitSet ICB, BetterBitSet X) {
         if (X.isEmpty()) {
-            return new BetterBitSet();
+            return new BetterBitSet(X.length());
         }
-
-        int xLength = X.length();
-        int n = Utils.divCeil(xLength,128);
-        int u = getNAndU(xLength)[1];
-        BetterBitSet[] meddlingY = new BetterBitSet[n];
-        BetterBitSet[] CB = new BetterBitSet[n];
+        //pad to make sure no characters get lost
+        int xLength = X.length()+(16 - X.length()%16);//CORRECT
+        int[] nAndU = getNAndU(xLength);
+        BetterBitSet[] meddlingY = new BetterBitSet[nAndU[0]];
+        BetterBitSet[] CB = new BetterBitSet[nAndU[0]];
         CB[0] = ICB;
-
-        for (int i = 2; i <= n; i++) {
-            CB[i-1] = incr(CB[i - 2]);
+        for (int d = 0; d <= nAndU[0]; d++) {
+            if (2<=d){
+                CB[d-1] = inc32(CB[d - 2]);
+            }
+            if((d>=1)&&(d<nAndU[0])){
+                BetterBitSet xorComponent = AES_128.cipherBitSetState(key, CB[d-1]);
+                X.get((d-1)*128, 128*d).xor(xorComponent);
+                meddlingY[d-1] =X.get((d-1)*128, 128*d);
+                X.get((d-1)*128, 128*d).xor(xorComponent);
+            }
         }
-
-        for (int i = 1; i < n; i++) {
-            BetterBitSet xorComponent = AES_128.cipherBitSetState(key, CB[i-1]);
-            X.get((i-1)*128, 128*i).xor(xorComponent);
-            meddlingY[i-1] =X.get((i-1)*128, 128*i);
-            X.get((i-1)*128, 128*i).xor(xorComponent);//return to normal
-        }
-
-        BitSet cipherResult = MSB(u, AES_128.cipherBitSetState(key, CB[n-1]));
-
-        X.get(128*(n-1),xLength).xor(cipherResult);
-        meddlingY[n-1] = X.get((128)*(n-1),xLength);
-        X.get(128*(n-1),xLength).xor(cipherResult);//return to normal
+        BitSet cipherResult = MSB(nAndU[1], AES_128.cipherBitSetState(key, CB[nAndU[0]-1]));
+        X.get(128*(nAndU[0]-1),xLength).xor(cipherResult);
+        meddlingY[nAndU[0]-1] = X.get((128)*(nAndU[0]-1),xLength);
+        X.get(128*(nAndU[0]-1),xLength).xor(cipherResult);//return to normal
         
-        BetterBitSet Y = new BetterBitSet();
+        BetterBitSet Y = new BetterBitSet((nAndU[0]*128)+nAndU[1]);
         for (int i = 0; i < meddlingY.length; i++) {
             int secondLength = 128;
-            if(i==n-1){
-                secondLength = u;
+            if(i==nAndU[0]-1){
+                secondLength = nAndU[1];
             }
             Y = BetterBitSet.concatenate(Y, (i+1)*16, meddlingY[i], secondLength);
         }
@@ -94,10 +85,10 @@ public class GCM {
     public static BetterBitSet MSB(int t, BetterBitSet input) {
         int length = input.length();
         if(length == 0){
-            return new BetterBitSet();
+            return new BetterBitSet(0);
         }
         if (t == 1) {
-            BetterBitSet toReturn = new BetterBitSet();
+            BetterBitSet toReturn = new BetterBitSet(1);
             toReturn.set(input.get(length - 1) ? 1 : 0);
             return toReturn;
         }
@@ -107,9 +98,15 @@ public class GCM {
 
     //review is this necessary
     private static String intLeadingZeroBinaryRep(int in){
+        if(in<0){
+            throw new RuntimeException("input to intLeadingZeroBianryRep was negative, not meant to be");
+        }
         String toReturn = Integer.toBinaryString(in);
-        if (toReturn.charAt(0)=='1'){
+        if (toReturn.charAt(0)=='1'){//if highest index bit is 1
             toReturn = "0"+toReturn;
+        }
+        if(toReturn.length()>Math.pow(2, 64)){
+            throw new RuntimeException("mistake in int leading zero binary rep function");
         }
         return toReturn;
     }
@@ -120,7 +117,7 @@ public class GCM {
             throw new RuntimeException("You forgot to set a key. You need to set the GCM key before trying to encrypt!");
         }
         BetterBitSet bitsetP = BetterBitSet.asciiStringToBitset(P);
-        if (bitsetP.length()> 68719476480L){
+        if (P.length()> 68719476480L){
             throw new RuntimeException("Message too large.");
         }
         //not checking if givenA has valid length, limit is longer than a long, so unlikely
@@ -131,8 +128,8 @@ public class GCM {
         }
 
         thirtyOneZeroesAnd1.set(0);//follow with 31 0's
-        int[] nAndU = getNAndU(P.length());
-
+        BetterBitSet zeroes = new BetterBitSet(128);//todo dc, i think max is 128
+        BetterBitSet A = asciiStringToBitset(givenA);
         BetterBitSet H = Utils.intLinearArrayToBitset(
                 AES_128.cipherIntState(key, new int[][]{
                                 {0, 0, 0, 0},
@@ -142,35 +139,27 @@ public class GCM {
                         }
                 )
         );
+        BetterBitSet JZero = concatenate(IVbitSet,thirtyOneZeroesAnd1,32);
+        BetterBitSet C = GCTR(inc32(JZero),bitsetP);
+        int cLength = C.length()+(16 - C.length()%16);
+        int aLength = A.length()+(16 - A.length()%16);
+        int u = (divCeil(cLength,128)*128)-cLength;
+        int v = (divCeil(aLength,128)*128)-aLength;
 
-        BetterBitSet[] J = new BetterBitSet[nAndU[0] + 1];
-        J[0] = BetterBitSet.concatenate(IVbitSet, thirtyOneZeroesAnd1,32);
-        for (int i = 1; i <= nAndU[0]; i++) {
-            //increment it
-            J[i] = incr(J[i - 1]);
-        }
-        BitSet A = asciiStringToBitset(givenA);
-        BetterBitSet C = GCTR(incr(J[0]), asciiStringToBitset(P));
-        int u = 128 * (Utils.divCeil(C.size(), 128)) - C.size();
-        int v = 128 * (Utils.divCeil(A.size(), 128)) - A.size();
-        BetterBitSet bitSetOfZeroes = new BetterBitSet();
-        BetterBitSet argumentForS = BetterBitSet.concatenate(A, bitSetOfZeroes, v);
-        BetterBitSet bitsetA = asciiStringToBitset(intLeadingZeroBinaryRep(givenA.length()*16));
-
-        argumentForS = BetterBitSet.concatenate(argumentForS, C, C.length());
-        argumentForS = BetterBitSet.concatenate(argumentForS, bitSetOfZeroes, u);
-        argumentForS = BetterBitSet.concatenate(argumentForS, bitsetA, givenA.length()*16);
-        BetterBitSet bitsetC = asciiStringToBitset(intLeadingZeroBinaryRep(C.length()*16));
-        argumentForS = BetterBitSet.concatenate(argumentForS, bitsetC, C.length()*16);
-
+        BetterBitSet argumentForS = concatenate(A, aLength, zeroes, v);
+        argumentForS = concatenate(argumentForS,v+aLength,  C, cLength);
+        argumentForS = concatenate(argumentForS,v+aLength+cLength, zeroes, u);
+        argumentForS = concatenate(argumentForS, v+aLength+cLength+u,binaryStringToBetterBitSet(intLeadingZeroBinaryRep(aLength)),64);
+        argumentForS = concatenate(argumentForS,v+aLength+cLength+u+64, binaryStringToBetterBitSet(intLeadingZeroBinaryRep(cLength)),64);
         BetterBitSet S = GHASH.hash(argumentForS, H);
-        BetterBitSet T = MSB(tagLength, GCTR(J[0], S));
-        return new EncryptionReturnPackage(bitsetToBinaryString(C), bitsetToBinaryString(T), givenA);
-
+        BetterBitSet gctrResult = GCTR(JZero,S);
+        BetterBitSet T = MSB(tagLength, gctrResult);
+        return new EncryptionReturnPackage(C.bitSetToAsciiString(), T.bitSetToAsciiString(), givenA);
     }
 
     //Assume all input strings are given in utf-8 format
     // IV bit length = 96, char length = 6
+    //review, messed up handling of bit strings
     public String gcmDecryption(String IV, String C, String A, String T){
         final String FAIL_MESSAGE = "FAIL";
         System.out.println(T.length()+" == "+tagLength);
@@ -189,13 +178,13 @@ public class GCM {
                 )
         );
         BetterBitSet JZero = BetterBitSet.concatenate(asciiStringToBitset(IV), 96, thirtyOneZeroesAnd1, 32);
-        BetterBitSet P = GHASH.hash(incr(JZero), asciiStringToBitset(C));
+        BetterBitSet P = GHASH.hash(inc32(JZero), asciiStringToBitset(C));
         int u = 128 * Utils.divCeil(C.length()*16, 128)- (C.length()*16);
         int v = 128 * Utils.divCeil(A.length()*16, 128) -(A.length()*16);
 
         BetterBitSet bitSetA = asciiStringToBitset(A);
         BetterBitSet bitsetC = asciiStringToBitset(C);
-        BetterBitSet argumentForS = BetterBitSet.concatenate(bitSetA, A.length()*16, new BetterBitSet(), v);
+        BetterBitSet argumentForS = BetterBitSet.concatenate(bitSetA, A.length()*16, new BetterBitSet(v), v);
         argumentForS = BetterBitSet.concatenate(argumentForS, A.length()*16 +v, bitsetC, C.length()*16);
         String lenA64 = intLeadingZeroBinaryRep(A.length()*16);
         String lenC64 = intLeadingZeroBinaryRep(C.length()*16);
@@ -207,11 +196,11 @@ public class GCM {
         );
         BetterBitSet S = GHASH.hash(argumentForS, H);
         BetterBitSet TChanged = MSB(tagLength, GCTR(JZero, S));
-        //if (T.equals(bitsetToBinaryString(TChanged))){
+        if (T.equals(bitsetToBinaryString(TChanged))){//double check review works
             return P.bitSetToAsciiString();
-        //}else {
-           // return FAIL_MESSAGE;
-        //}
+        }else {
+           return FAIL_MESSAGE;
+        }
 
 
     }

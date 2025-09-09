@@ -1,9 +1,7 @@
 package ee;
 
-import java.util.BitSet;
-
 public class GHASH {
-    private final static BetterBitSet zeroBlock = new BetterBitSet();
+    private final static BetterBitSet zeroBlock = new BetterBitSet(128);
     static BetterBitSet hash(BetterBitSet X, BetterBitSet H){
         int m = X.size()/128;
         BetterBitSet Y = zeroBlock;

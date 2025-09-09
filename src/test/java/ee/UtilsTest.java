@@ -2,6 +2,9 @@ package ee;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+
+import static ee.Utils.twoDimensionalIntArrayToBitset;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class UtilsTest {
@@ -22,7 +25,7 @@ public class UtilsTest {
     public void intLinearArrayToBitset(){
         int[] tester =  {1,2,3};
         System.out.println(Utils.intLinearArrayToBitset(tester));
-        BetterBitSet checker = new BetterBitSet();
+        BetterBitSet checker = new BetterBitSet(48);
         checker.set(0);
         checker.set(17);
         checker.set(32,34,true);
@@ -35,5 +38,18 @@ public class UtilsTest {
         int b = 128;
         int res = Utils.divCeil(a,b);
         assertEquals(7, res);
+    }
+
+    @Test
+    public void twoDimensionalIntArrayToBitsetTest(){
+        int[][] testerInput = new int[][]{
+                {1,2,3,4},
+                {5,6,7,8},
+                {9,10,11,12},
+                {13,14,15,16}
+        };
+        BetterBitSet returnedOfTested = twoDimensionalIntArrayToBitset(testerInput);
+        int[][] testAgainst = Utils.bitsetToTwoDimensionalIntArray(returnedOfTested);
+        assertTrue(Arrays.deepEquals(testAgainst, testAgainst));
     }
 }
