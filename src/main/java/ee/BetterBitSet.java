@@ -2,6 +2,8 @@ package ee;
 
 import java.util.BitSet;
 
+import static ee.Utils.floorDivDouble;
+
 public class BetterBitSet extends BitSet {
     int properLength;
     BetterBitSet(int lengthGiven) {
@@ -81,8 +83,7 @@ public class BetterBitSet extends BitSet {
         return toReturn.toString();
     }
 
-    public static BetterBitSet asciiStringToBitset(String input) {//todo double check all usages are correct
-        //make it work, then make it good
+    public static BetterBitSet asciiStringToBitset(String input) {
         BetterBitSet toReturn = new BetterBitSet(input.length()*16);
         StringBuilder inputAsBitString = new StringBuilder();
         for (int i = 0; i < input.length(); i++) {
@@ -198,6 +199,18 @@ public class BetterBitSet extends BitSet {
         while (setIndex != -1) {
             toReturn.set(setIndex);
             setIndex = in.nextSetBit(setIndex + 1);
+        }
+        return toReturn;
+    }
+
+    public static BetterBitSet intToBitset(int in){
+        double len = floorDivDouble(Math.log10(in), Math.log10(2)) +1;
+        System.out.println(len);
+        BetterBitSet toReturn = new BetterBitSet((int) len );
+        for (int i = 0; i <=len; i++){
+            if(((in>>i)&1) == 1){
+                toReturn.set(i);
+            }
         }
         return toReturn;
     }

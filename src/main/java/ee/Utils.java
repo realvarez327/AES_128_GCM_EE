@@ -111,14 +111,22 @@ public class Utils {
     }
 
     //this sucks, todo redo post review
-    public static BetterBitSet intToBitset(int in, int length){
-        BetterBitSet toReturn = new BetterBitSet(length);
-        for (int i = 0; i <length; i++){
-            if(((in>>i)&1) == 1){
-                toReturn.set(i);
-            }
+
+
+    public static int floorDivInt(int a, int b){
+        int remainder = a % b;
+        if(remainder!=0){
+            a-=remainder;
         }
-        return toReturn;
+        return a/b;
+    }
+
+    public static double floorDivDouble(double a, double b){
+        double remainder = a % b;
+        if(remainder!=0){
+            a-=remainder;
+        }
+        return a/b;
     }
 
     public static BetterBitSet longToBitset(long in, int length){
@@ -193,13 +201,14 @@ public class Utils {
         return Integer.toBinaryString(BetterBitSet.bitsetToInteger(in));
     }
 
-    //review, check this
     public static BetterBitSet binaryStringToBetterBitSet(String in){
         BetterBitSet toReturn = new BetterBitSet(in.length());
-        int index = in.indexOf('1');
+        StringBuilder inActual = new StringBuilder(in).reverse();
+
+        int index = inActual.indexOf("1");
         while (index>=0){
             toReturn.set(index);
-            index=in.indexOf('1',index+1);
+            index=inActual.indexOf("1",index+1);
         }
         return toReturn;
     }

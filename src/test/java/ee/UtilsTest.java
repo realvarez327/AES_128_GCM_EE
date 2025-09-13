@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
+import static ee.Utils.binaryStringToBetterBitSet;
 import static ee.Utils.twoDimensionalIntArrayToBitset;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -51,5 +52,42 @@ public class UtilsTest {
         BetterBitSet returnedOfTested = twoDimensionalIntArrayToBitset(testerInput);
         int[][] testAgainst = Utils.bitsetToTwoDimensionalIntArray(returnedOfTested);
         assertTrue(Arrays.deepEquals(testAgainst, testAgainst));
+    }
+
+    @Test
+    public void binaryStringToBetterBitSetTest(){
+        int testInt = 5;
+        BetterBitSet shouldBe = new BetterBitSet(20);
+        shouldBe.set(0);
+        shouldBe.set(2);
+        assertEquals(shouldBe, binaryStringToBetterBitSet(Integer.toBinaryString(testInt)));
+
+        shouldBe.clear();
+
+        testInt = 32;
+        shouldBe.set(5);
+        assertEquals(shouldBe, binaryStringToBetterBitSet(Integer.toBinaryString(testInt)));
+
+        shouldBe.clear();
+
+        testInt = 0xf0f0;
+        shouldBe.set(4);
+        shouldBe.set(5);
+        shouldBe.set(6);
+        shouldBe.set(7);
+        shouldBe.set(12);
+        shouldBe.set(13);
+        shouldBe.set(14);
+        shouldBe.set(15);
+        assertEquals(shouldBe, binaryStringToBetterBitSet(Integer.toBinaryString(testInt)));
+    }
+
+    @Test
+    public void intToBitset(){
+        int tester = 5;
+        BetterBitSet shouldBe = new BetterBitSet(8);
+        shouldBe.set(0);
+        shouldBe.set(2);
+        assertEquals(shouldBe, BetterBitSet.intToBitset(tester));
     }
 }

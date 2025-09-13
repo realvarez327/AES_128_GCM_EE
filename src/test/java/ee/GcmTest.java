@@ -2,6 +2,7 @@ package ee;
 
 import org.junit.jupiter.api.Test;
 
+import static ee.GCM.prepLength64Variables;
 import static ee.Utils.*;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -45,5 +46,16 @@ public class GcmTest {
         tester.set(0,32);
         tester = GCM.inc32(tester);
         assertEquals(0, tester.bitsetToInteger());
+    }
+
+    @Test
+    public void prepLength64VariablesTest(){
+        BetterBitSet test = new BetterBitSet(16);
+        BetterBitSet shouldBe = new BetterBitSet(64);
+        shouldBe.set(4);
+        BetterBitSet res = prepLength64Variables(test);
+        System.out.println(res.length());
+        assertEquals(64, res.length());
+        assertEquals(shouldBe, res);
     }
 }
