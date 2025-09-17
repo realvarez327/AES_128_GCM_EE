@@ -58,4 +58,9 @@ public class GcmTest {
         assertEquals(64, res.length());
         assertEquals(shouldBe, res);
     }
+
+    @Test
+    public void GCTRTest(){
+
+    }
 }

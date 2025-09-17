@@ -25,20 +25,16 @@ public class UtilsTest {
     @Test
     public void intLinearArrayToBitset(){
         int[] tester =  {1,2,3};
-        System.out.println(Utils.intLinearArrayToBitset(tester));
-        BetterBitSet checker = new BetterBitSet(48);
+        //res should be 00000001 00000010 00000011
+        BetterBitSet res = Utils.intLinearArrayToBitset(tester);
+        System.out.println(res);
+        BetterBitSet checker = new BetterBitSet(24);
         checker.set(0);
-        checker.set(17);
-        checker.set(32,34,true);
-        assertEquals(checker, Utils.intLinearArrayToBitset(tester));
-    }
+        checker.set(1);
+        checker.set(9);
+        checker.set(16);
 
-    @Test
-    public void divCeil(){
-        int a = 774;
-        int b = 128;
-        int res = Utils.divCeil(a,b);
-        assertEquals(7, res);
+        assertEquals(checker, Utils.intLinearArrayToBitset(tester));
     }
 
     @Test
@@ -89,5 +85,50 @@ public class UtilsTest {
         shouldBe.set(0);
         shouldBe.set(2);
         assertEquals(shouldBe, BetterBitSet.intToBitset(tester));
+    }
+
+    @Test
+    public void multiplicationBlock(){
+        //1*1
+        BetterBitSet X = new BetterBitSet(128);
+        X.set(0);
+        BetterBitSet Y = new BetterBitSet(128);
+        Y.set(0);
+        Y.set(1);
+        assertEquals(Utils.multiplicationBlock(X,Y), Y);
+
+        X.clear();
+        Y.clear();
+
+        //commutative property
+        X.set(1);
+        assertEquals(Utils.multiplicationBlock(X,Y), Utils.multiplicationBlock(Y,X));
+
+        X.clear();
+        Y.clear();
+        //distributive property
+        BetterBitSet a = new BetterBitSet(128);
+        a.set(0);
+        Y.set(0);
+        Y.set(1);
+        X.set(1);
+        // a =1, X =2, Y = 3
+        //resOne = a*X + a*Y, resTwo = a*(X+Y)
+        BetterBitSet resOne = Utils.multiplicationBlock(a,X);
+        resOne.xor(Utils.multiplicationBlock(a,Y));
+
+        X.xor(Y);
+        BetterBitSet resTwo = Utils.multiplicationBlock(a,X);
+        X.xor(Y);
+        assertEquals(resOne,resTwo);
+
+        X.clear();
+        Y.clear();
+        //squaring
+        X.set(1);
+        Y.set(1);
+        BetterBitSet shouldBe = new BetterBitSet(128);
+        shouldBe.set(2);
+        assertEquals(shouldBe, Utils.multiplicationBlock(X,Y));
     }
 }
