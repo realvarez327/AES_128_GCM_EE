@@ -22,6 +22,20 @@ public class OfficialTest {
 
     }
 
+
+
+
+    @Test
+    public void officialAESTest_Base(){
+        for (int i = 0; i < 5; i++) {
+            int[] cipherText = cipherIntStateBase(keyString, plaintextTo2DIntArray(plaintext));
+            System.out.println(linearIntArrayToAsciiString(cipherText));
+            int[] backToPlainText = invCipherBase(keyString, linearToTwoDimensionalArray(cipherText));
+            System.out.println(linearIntArrayToAsciiString(backToPlainText));
+        }
+
+    }
+
     @Test
     public void officialAESTest_RconValues(){
         for (int i = 0; i < 5; i++) {

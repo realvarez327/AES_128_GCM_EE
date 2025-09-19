@@ -58,8 +58,6 @@ public class AES_128 {
             {0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d}
     };
 
-
-
     //returns bitset also
     @SuppressWarnings("DataFlowIssue")
     public static BetterBitSet cipherBitSetState(String key, BetterBitSet inputState) {
@@ -150,7 +148,8 @@ public class AES_128 {
         return twoDimensionalToLinearArray(state);
     }
 
-    public static int[] cipherIntStateFunctionCallFrequency(String key, int[][] state) {
+    @SuppressWarnings("DataFlowIssue")
+    public static int[] cipherIntStateBase(String key, int[][] state) {
         int[][] w = keyExpansion(plaintextTo2DIntArray(key));
         state = addRoundKey(state, new int[][]{
                 {w[0][0], w[0][1], w[0][2], w[0][3]},
@@ -160,13 +159,11 @@ public class AES_128 {
         });
         for (int round = 1; round < Nr; round++) {
             //do subBytes for each byte in state
-//            for (int r = 0; r < 4; r++) {
-//                for (int c = 0; c < 4; c++) {
-//                    state[r][c] = subBytes(state[r][c]);
-//                }
-//            }
-            state = subBytesCallOnce(state);
-
+            for (int r = 0; r < 4; r++) {
+                for (int c = 0; c < 4; c++) {
+                    state[r][c] = subBytes(state[r][c]);
+                }
+            }
             state = shiftRows(state);
             state = mixColumns(state);
             state = addRoundKey(state, new int[][]{
@@ -176,12 +173,11 @@ public class AES_128 {
                     {w[3][4 * round], w[3][(4 * round) + 1], w[3][(4 * round) + 2], w[3][(4 * round) + 3]}
             });
         }
-//        for (int r = 0; r < 4; r++) {
-//            for (int c = 0; c < 4; c++) {
-//                state[r][c] = subBytes(state[r][c]);
-//            }
-//        }
-        state = subBytesCallOnce(state);
+        for (int r = 0; r < 4; r++) {
+            for (int c = 0; c < 4; c++) {
+                state[r][c] = subBytes(state[r][c]);
+            }
+        }
 
         state = shiftRows(state);
 
@@ -194,6 +190,41 @@ public class AES_128 {
         return twoDimensionalToLinearArray(state);
     }
 
+    @SuppressWarnings("DataFlowIssue")
+    public static int[] cipherIntStateFunctionCallFrequency(String key, int[][] state) {
+        int[][] w = keyExpansionFunctionCallFrequency(plaintextTo2DIntArray(key));
+        state = addRoundKey(state, new int[][]{
+                {w[0][0], w[0][1], w[0][2], w[0][3]},
+                {w[1][0], w[1][1], w[1][2], w[1][3]},
+                {w[2][0], w[2][1], w[2][2], w[2][3]},
+                {w[3][0], w[3][1], w[3][2], w[3][3]}
+        });
+        for (int round = 1; round < Nr; round++) {
+
+            state = subBytesCallOnce(state);
+
+            state = shiftRows(state);
+            state = mixColumns(state);
+            state = addRoundKey(state, new int[][]{
+                    {w[0][4 * round], w[0][(4 * round) + 1], w[0][(4 * round) + 2], w[0][(4 * round) + 3]},
+                    {w[1][4 * round], w[1][(4 * round) + 1], w[1][(4 * round) + 2], w[1][(4 * round) + 3]},
+                    {w[2][4 * round], w[2][(4 * round) + 1], w[2][(4 * round) + 2], w[2][(4 * round) + 3]},
+                    {w[3][4 * round], w[3][(4 * round) + 1], w[3][(4 * round) + 2], w[3][(4 * round) + 3]}
+            });
+        }
+        state = subBytesCallOnce(state);
+
+        state = shiftRows(state);
+
+        state = addRoundKey(state, new int[][]{
+                {w[0][(4 * Nr)], w[0][(4 * Nr) + 1], w[0][(4 * Nr) + 2], w[0][(4 * Nr) + 3]},
+                {w[1][(4 * Nr)], w[1][(4 * Nr) + 1], w[1][(4 * Nr) + 2], w[1][(4 * Nr) + 3]},
+                {w[2][(4 * Nr)], w[2][(4 * Nr) + 1], w[2][(4 * Nr) + 2], w[2][(4 * Nr) + 3]},
+                {w[3][(4 * Nr)], w[3][(4 * Nr) + 1], w[3][(4 * Nr) + 2], w[3][(4 * Nr) + 3]}
+        });
+        return twoDimensionalToLinearArray(state);
+    }
+    @SuppressWarnings("DataFlowIssue")
     public static int[] cipherIntStateWord(String key, Word[] state) {
         Word[] w = keyExpansionWords(plaintextToWordArray(key));
         state = addRoundKeyWord(state, w);
@@ -356,6 +387,39 @@ public class AES_128 {
         return w;
     }
 
+    @SuppressWarnings("DataFlowIssue")
+    static int[][] keyExpansionFunctionCallFrequency(int[][] key) {
+        int[][] w = new int[4][4 * (Nr + 1)];
+        //has 4 rows, but 4*Nr+1 (11) words.
+        int i = 0;
+        while (i <= (Nk - 1)) {
+            w[0][i] = key[0][i];
+            w[1][i] = key[1][i];
+            w[2][i] = key[2][i];
+            w[3][i] = key[3][i];
+
+            i++;
+        }
+        while (i <= ((4 * Nr) + 3)) {
+            int[] temp = new int[]{w[0][i - 1], w[1][i - 1], w[2][i - 1], w[3][i - 1]};
+            if ((i % Nk) == 0) {
+                temp = subWordInternalLoop(rotWord(temp));
+                int[] currRcon = Rcon[i / Nk];
+                temp[0] = (temp[0] ^ currRcon[0]);
+                temp[1] = (temp[1] ^ currRcon[1]);
+                temp[2] = (temp[2] ^ currRcon[2]);
+                temp[3] = (temp[3] ^ currRcon[3]);
+            }
+            for (int j = 0; j < 4; j++) {
+                w[j][i] = (w[j][i - Nk] ^ temp[j]);
+            }
+            i++;
+
+        }
+        return w;
+    }
+
+    @SuppressWarnings("DataFlowIssue")
     static int[][] keyExpansionRconGenerate(int[][] key) {
         int[][] w = new int[4][4 * (Nr + 1)];
         //has 4 rows, but 4*Nr+1 (11) words.
@@ -533,8 +597,8 @@ public class AES_128 {
         //return state;
         return twoDimensionalToLinearArray(state);
     }
-
-    static int[] invCipherFunctionCallFrequency(String keyAsString, int[][] in) {
+    @SuppressWarnings("DataFlowIssue")
+    static int[] invCipherBase(String keyAsString, int[][] in) {
         int[][] state = in;
         int[][] roundKeys = keyExpansion(plaintextTo2DIntArray(keyAsString));
         state = addRoundKey(state, new int[][]{
@@ -545,11 +609,52 @@ public class AES_128 {
         });
         for (int round = Nr - 1; round >= 1; round--) {
             state = invShiftRows(state);
-//            for (int r = 0; r < state.length; r++) {
-//                for (int c = 0; c < state[r].length; c++) {
-//                    state[r][c] = invSubBytes(state[r][c]);
-//                }
-//            }
+            for (int r = 0; r < state.length; r++) {
+                for (int c = 0; c < state[r].length; c++) {
+                    state[r][c] = invSubBytes(state[r][c]);
+                }
+            }
+//            state = invSubBytesCallOnce(state);
+            state = addRoundKey(state, new int[][]{
+                    {roundKeys[0][4 * round], roundKeys[0][(4 * round) + 1], roundKeys[0][(4 * round) + 2], roundKeys[0][(4 * round) + 3]},
+                    {roundKeys[1][4 * round], roundKeys[1][(4 * round) + 1], roundKeys[1][(4 * round) + 2], roundKeys[1][(4 * round) + 3]},
+                    {roundKeys[2][4 * round], roundKeys[2][(4 * round) + 1], roundKeys[2][(4 * round) + 2], roundKeys[2][(4 * round) + 3]},
+                    {roundKeys[3][4 * round], roundKeys[3][(4 * round) + 1], roundKeys[3][(4 * round) + 2], roundKeys[3][(4 * round) + 3]}
+            });
+            state = invMixColumns(state);
+        }
+        state = invShiftRows(state);
+        for (int r = 0; r < state.length; r++) {
+            for (int c = 0; c < state[r].length; c++) {
+                state[r][c] = invSubBytes(state[r][c]);
+            }
+        }
+//        state = invSubBytesCallOnce(state);
+
+        state = addRoundKey(state, new int[][]{
+                {roundKeys[0][0], roundKeys[0][1], roundKeys[0][2], roundKeys[0][3]},
+                {roundKeys[1][0], roundKeys[1][1], roundKeys[1][2], roundKeys[1][3]},
+                {roundKeys[2][0], roundKeys[2][1], roundKeys[2][2], roundKeys[2][3]},
+                {roundKeys[3][0], roundKeys[3][1], roundKeys[3][2], roundKeys[3][3]}
+        });
+
+        //docs say to return state, but I want to maybe do a test case... so we return as linear version of state
+        //return state;
+        return twoDimensionalToLinearArray(state);
+    }
+    @SuppressWarnings("DataFlowIssue")
+    static int[] invCipherFunctionCallFrequency(String keyAsString, int[][] in) {
+        int[][] state = in;
+        int[][] roundKeys = keyExpansionFunctionCallFrequency(plaintextTo2DIntArray(keyAsString));
+        state = addRoundKey(state, new int[][]{
+                {roundKeys[0][4 * Nr], roundKeys[0][(4 * Nr) + 1], roundKeys[0][(4 * Nr) + 2], roundKeys[0][(4 * Nr) + 3]},
+                {roundKeys[1][4 * Nr], roundKeys[1][(4 * Nr) + 1], roundKeys[1][(4 * Nr) + 2], roundKeys[1][(4 * Nr) + 3]},
+                {roundKeys[2][4 * Nr], roundKeys[2][(4 * Nr) + 1], roundKeys[2][(4 * Nr) + 2], roundKeys[2][(4 * Nr) + 3]},
+                {roundKeys[3][4 * Nr], roundKeys[3][(4 * Nr) + 1], roundKeys[3][(4 * Nr) + 2], roundKeys[3][(4 * Nr) + 3]}
+        });
+        for (int round = Nr - 1; round >= 1; round--) {
+            state = invShiftRows(state);
+
             state = invSubBytesCallOnce(state);
             state = addRoundKey(state, new int[][]{
                     {roundKeys[0][4 * round], roundKeys[0][(4 * round) + 1], roundKeys[0][(4 * round) + 2], roundKeys[0][(4 * round) + 3]},
@@ -560,11 +665,7 @@ public class AES_128 {
             state = invMixColumns(state);
         }
         state = invShiftRows(state);
-//        for (int r = 0; r < state.length; r++) {
-//            for (int c = 0; c < state[r].length; c++) {
-//                state[r][c] = invSubBytes(state[r][c]);
-//            }
-//        }
+
         state = invSubBytesCallOnce(state);
 
         state = addRoundKey(state, new int[][]{
@@ -576,7 +677,7 @@ public class AES_128 {
 
         return twoDimensionalToLinearArray(state);
     }
-
+    @SuppressWarnings("DataFlowIssue")
     static int[] invCipherWord(String keyAsString, Word[] in) {
         Word[] state = in;
         Word[] roundKeys = keyExpansionWords(plaintextToWordArray(keyAsString));
@@ -612,7 +713,6 @@ public class AES_128 {
     }
 
     private static void invMixColumnsWord(Word[] state){
-        int[] newCol = new int[Nb];
         int valOne, valTwo, valThree, valFour;
         for (int c = 0; c < Nb; c++) {
             Word curr = state[c];
