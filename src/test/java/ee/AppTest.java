@@ -2,9 +2,9 @@ package ee;
 
 import org.junit.jupiter.api.Test;
 
-import static ee.AES_128.cipherIntState;
-import static ee.AES_128.invCipher;
+import static ee.AES_128.*;
 import static ee.Utils.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class AppTest {
@@ -27,13 +27,35 @@ public class AppTest {
     }
 
     @Test
-    public void basicAES(){
+    public void basicAESInt(){
         String aesPlainText = "fantasticalities";
         int[] cipherText = cipherIntState(keyString, plaintextTo2DIntArray(aesPlainText));
-        System.out.println(linearIntArrayToString(cipherText));
+        System.out.println(linearIntArrayToAsciiString(cipherText));
         int[] backToPlainText = invCipher(keyString, linearToTwoDimensionalArray(cipherText));
-        System.out.println(linearIntArrayToString(backToPlainText));
-        assertEquals(aesPlainText, linearIntArrayToString(backToPlainText));
+        System.out.println(linearIntArrayToAsciiString(backToPlainText));
+        assertEquals(aesPlainText, linearIntArrayToAsciiString(backToPlainText));
     }
 
+    @Test
+    public void basicAESBitset(){
+        String aesPlainText = "fantasticalities";
+        BetterBitSet cipherText = cipherBitSetState(keyString, BetterBitSet.asciiStringToBitset(aesPlainText));
+        System.out.println("ciphertext = "+cipherText.bitSetToAsciiString());
+        int[] backToPlainText = invCipher(keyString, bitsetToTwoDimensionalIntArray(cipherText));
+        System.out.println("back to plaintext = "+ linearIntArrayToAsciiString(backToPlainText));
+        assertEquals(aesPlainText, linearIntArrayToAsciiString(backToPlainText));
+    }
+
+    @Test
+    public void sanityCheck(){
+        int[][] intState = new int[][]{
+                {1,5,9,13},
+                {2,6,10,14},
+                {3,7,11,15},
+                {4,8,12,16}
+        };
+        BetterBitSet bs = twoDimensionalIntArrayToBitset(intState);
+        int[][] back = bitsetToTwoDimensionalIntArray(bs);
+        assertArrayEquals(intState,back);
+    }
 }

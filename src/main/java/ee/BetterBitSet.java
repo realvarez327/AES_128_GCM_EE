@@ -2,7 +2,7 @@ package ee;
 
 import java.util.BitSet;
 
-import static ee.Utils.floorDivDouble;
+
 import static ee.Utils.characterBits;
 
 public class BetterBitSet extends BitSet {
@@ -65,24 +65,7 @@ public class BetterBitSet extends BitSet {
         }
     }
 
-    public static String bitSetToAsciiString(BetterBitSet input) {
-        int index = 0;
-        StringBuilder toReturn = new StringBuilder();
-        int intform;
-        while ((characterBits + index) <= input.length()) {
-            intform = input.get(index, index + characterBits).bitsetToInteger();
-            toReturn.append((char) intform);
-            index+= 16;
-        }
-
-        if (index < input.length() - 1) {
-            intform = input.get(index, input.length()).bitsetToInteger();
-            toReturn.append((char) intform);
-        }
-
-        return toReturn.reverse().toString();
-    }
-
+    //todo check for test pass
     public String bitSetToAsciiString() {
         int index = 0;
         StringBuilder toReturn = new StringBuilder();
@@ -101,26 +84,23 @@ public class BetterBitSet extends BitSet {
         return toReturn.reverse().toString();
     }
 
-    //todo test
+    //todo check for test pass
     public static BetterBitSet asciiStringToBitset(String input) {
         int len = input.length();
         StringBuilder reversedInput = new StringBuilder(input).reverse();
         BetterBitSet toReturn = new BetterBitSet(len*characterBits);
-        for (int i = len-1; i > -1; i--) {
+        for (int i = 0; i < len; i++) {
             int curr = reversedInput.charAt(i);
-            for (int j = 0; j <=characterBits; j++){// < or <=?, see full range of j
+            for (int j = 0; j < characterBits; j++){
                 if(((curr>>>j)&1) == 1){
                     toReturn.set((characterBits*i)+j);
-                }
-                if((2<<j)>curr){
-                    break;
                 }
             }
         }
         return toReturn;
     }
 
-    //todo, will bitsSecond be needed when proper length fully implemented
+    //second is rightmost, LSB
     public static BetterBitSet concatenate(BetterBitSet first, BetterBitSet second, int bitsSecond) {
         if(bitsSecond == 0){
             return first;
@@ -131,6 +111,7 @@ public class BetterBitSet extends BitSet {
         }
         final int lengthOfFirst = first.length();
         BetterBitSet toReturn = (BetterBitSet) second.clone();
+        toReturn = toReturn.get(0,bitsSecond);
         toReturn.setProperLength(first.length()+second.length());
         int highestSetIndexOfNext = first.nextSetBit(0);
         while (highestSetIndexOfNext != -1) {
@@ -141,7 +122,7 @@ public class BetterBitSet extends BitSet {
         return toReturn;
     }
 
-    //todo test
+    //second is rightmost, LSB
     public static BetterBitSet concatenate(BetterBitSet first, int bitsFirst, BetterBitSet second, int bitsSecond) {
         if(bitsSecond == 0){
             return first;
@@ -161,11 +142,14 @@ public class BetterBitSet extends BitSet {
     }
 
     public int bitsetToInteger() {
+        if(this.length()>31){
+            throw new ArithmeticException("too many bits to convert to in, try long");
+        }
         int toReturn = 0;
         int index = this.nextSetBit(0);
 
         while (index != -1) {
-            toReturn += (int) Math.pow(2, index);
+            toReturn |= (1<<index);
             index = this.nextSetBit(index + 1);
         }
 
@@ -173,21 +157,13 @@ public class BetterBitSet extends BitSet {
     }
 
     public static int bitsetToInteger(BetterBitSet input) {
+        if(input.length()>31){
+            throw new ArithmeticException("too many bits to convert to in, try long");
+        }
         int toReturn = 0;
         int index = input.nextSetBit(0);
         while (index != -1) {
-            toReturn += (int) Math.pow(2, index);
-            index = input.nextSetBit(index + 1);
-        }
-        return toReturn;
-    }
-
-    //todo test
-    public static long bitsetToLong(BetterBitSet input){
-        long toReturn = 0;
-        int index = input.nextSetBit(0);
-        while (index != -1) {
-            toReturn |= (1L<<index);
+            toReturn |= (1<<index);
             index = input.nextSetBit(index + 1);
         }
         return toReturn;
@@ -235,9 +211,9 @@ public class BetterBitSet extends BitSet {
     }
 
     public static BetterBitSet intToBitset(int in){
-        double len = floorDivDouble(Math.log10(in), Math.log10(2)) +1;
-        BetterBitSet toReturn = new BetterBitSet((int) len + 1);
-        for (int i = 0; i <=len; i++){
+        int len = Integer.SIZE-Integer.numberOfLeadingZeros(in);
+        BetterBitSet toReturn = new BetterBitSet( len);
+        for (int i = 0; i < len; i++){
             if(((in>>>i)&1) == 1){
                 toReturn.set(i);
             }

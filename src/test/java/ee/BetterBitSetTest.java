@@ -77,7 +77,6 @@ public class BetterBitSetTest {
 
     }
 
-
     @Test
     public void deepOrShallowClone(){
         BetterBitSet a = new BetterBitSet(128);

@@ -9,7 +9,7 @@ public class Utils {
     static final int characterBits = 8;
 
     //convert linear int array into an ascii string, each int is a character
-    static String linearIntArrayToString(int[] input) {
+    static String linearIntArrayToAsciiString(int[] input) {
         char[] toReturn = new char[input.length];
         for (int i = 0; i < input.length; i++) {
             toReturn[i] = (char) input[i];
@@ -38,17 +38,20 @@ public class Utils {
         return output;
     }
 
-    //review, hardcoded to only work for strings of length 16
     static int[][] plaintextTo2DIntArray(String textGiven) {
         //each ascii character corresponds to one byte/int
+        int len = textGiven.length();
         int[][] textReturn = new int[4][4];
         for (int i = 0; i < 16; i++) {
-            textReturn[i % 4][i / 4] = textGiven.charAt(i);
+            if (i < len) {
+                textReturn[i % 4][i / 4] = textGiven.charAt(i);
+            }
         }
+        //in string, last character would be in textReturn[3][3]
         return textReturn;
     }
 
-    public static BetterBitSet multiplicationBlock(BetterBitSet X, BetterBitSet Y){
+    public static BetterBitSet multiplicationBlock(BetterBitSet X, BetterBitSet Y) {
         final BetterBitSet R = new BetterBitSet(128);
         R.set(120);
         R.set(125);
@@ -59,72 +62,72 @@ public class Utils {
         BetterBitSet Z = new BetterBitSet(128);
         BetterBitSet V = (BetterBitSet) Y.clone();
         for (int i = 0; i < 128; i++) {
-            if(X.get(i)){
+            if (X.get(i)) {
                 Z.xor(V);
             }
             boolean leastSigBit = V.get(0);
-            V = V.get(1,128);
+            V = V.get(1, 128);
             V.setProperLength(128);
-            if(leastSigBit){
+            if (leastSigBit) {
                 V.xor(R);
             }
         }
         return Z;
     }
 
-    //review FIX TODO
-    public static BetterBitSet intLinearArrayToBitset(int[] input){
-        BetterBitSet workingOn = new BetterBitSet(characterBits*input.length);
-        StringBuilder binaryVersion = new StringBuilder();
-        for (int j = input.length-1; j>-1 ;j--) {
-            StringBuilder toAdd = new StringBuilder(Integer.toBinaryString(input[j])).reverse();
-            binaryVersion.append(toAdd).append("0".repeat(characterBits - toAdd.length()));
-        }
-
-        int index = binaryVersion.indexOf("1", 0);
-        while (index != -1){
-            workingOn.set(index);
-            index = binaryVersion.indexOf("1", index +1);
+    //LSB-first
+    public static BetterBitSet intLinearArrayToBitset(int[] input) {
+        BetterBitSet workingOn = new BetterBitSet(0);
+        //last one first
+        int len = input.length;
+        for (int i = 0; i < len; i++) {
+            int curr = input[i];
+            BetterBitSet toAddOn = new BetterBitSet(characterBits);
+            for (int j = 0; j < characterBits; j++) {
+                if (((curr >> j) & 1) == 1) {
+                    toAddOn.set(j);
+                }
+            }
+            workingOn = BetterBitSet.concatenate(workingOn, toAddOn, characterBits);
         }
 
         return workingOn;
     }
 
-    //todo ask for review, will there be repeat bits?
-    public static int[][] bitsetToTwoDimensionalIntArray(BetterBitSet input){
+    public static int[][] bitsetToTwoDimensionalIntArray(BetterBitSet input) {
         final int[][] toReturn = new int[4][4];
         int ctr = 0;
-        for(int i = 0; i <(input.length()-1); i+=characterBits){
-            toReturn[ctr%4][ctr/4] = input.get(i,i+characterBits).bitsetToInteger();
+        for (int i = 0; i < input.length(); i += characterBits) {
+            BetterBitSet currentInBits = input.get(i, i + characterBits);
+            int value = 0;
+            for (int b = 0; b < characterBits; b++) {
+                if (currentInBits.get(b)) {
+                    value |= 1 << b;
+                }
+            }
+
+            toReturn[ctr % 4][ctr / 4] = value;
             ctr++;
         }
         return toReturn;
     }
 
-    public static BetterBitSet twoDimensionalIntArrayToBitset(int[][] in){
+    //review check order of array
+    public static BetterBitSet twoDimensionalIntArrayToBitset(int[][] in) {
         int len = in.length;
-        BetterBitSet toReturn =new BetterBitSet(0);
-        for (int i = len-1; i > -1; i--) {
-            BetterBitSet toAdd = intLinearArrayToBitset(new int[]{
-                    in[0][i],
-                    in[1][i],
-                    in[2][i],
-                    in[3][i]
-            });
-            toReturn = BetterBitSet.concatenate(toReturn, toAdd, characterBits*4);
+        BetterBitSet toReturn = new BetterBitSet(0);
+        for (int c = 0; c < 4; c++) {
+            int[] col = new int[]{
+                    in[0][c],
+                    in[1][c],
+                    in[2][c],
+                    in[3][c]
+            };
+            BetterBitSet toAdd = intLinearArrayToBitset(col);
+            toReturn = BetterBitSet.concatenate(toReturn, toAdd, characterBits * 4);
         }
 
         return toReturn;
-    }
-
-    //Math.floorDiv does not work with doubles, see if this produces same result it should todo
-    public static double floorDivDouble(double a, double b){
-        double remainder = a % b;
-        if(remainder!=0){
-            a-=remainder;
-        }
-        return a/b;
-
     }
 
     static int xTimes(int a) {
@@ -176,22 +179,5 @@ public class Utils {
         }
         return index - 1;
     }
-
-    //todo check usages
-    public static String bitsetToBinaryString(BetterBitSet in) {
-        return Integer.toBinaryString(BetterBitSet.bitsetToInteger(in));
-    }
-
-    //todo test
-    public static BetterBitSet binaryStringToBetterBitSet(String in){
-        BetterBitSet toReturn = new BetterBitSet(in.length());
-        StringBuilder inActual = new StringBuilder(in).reverse();
-
-        int index = inActual.indexOf("1");
-        while (index>=0){
-            toReturn.set(index);
-            index=inActual.indexOf("1",index+1);
-        }
-        return toReturn;
-    }
 }
+

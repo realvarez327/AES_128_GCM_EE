@@ -2,7 +2,7 @@ package ee;
 
 import org.junit.jupiter.api.Test;
 
-import static ee.Utils.linearIntArrayToString;
+import static ee.Utils.linearIntArrayToAsciiString;
 import static ee.Utils.twoDimensionalToLinearArray;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,9 +41,9 @@ public class AesTest {
 
     @Test
     public void testLinearIntArrayToString() {
-        assertEquals("a", linearIntArrayToString(new int[]{97}));
-        assertEquals("aaaaaaa", linearIntArrayToString(new int[]{97, 97, 97, 97, 97, 97, 97}));
-        assertEquals("hello there", linearIntArrayToString(
+        assertEquals("a", linearIntArrayToAsciiString(new int[]{97}));
+        assertEquals("aaaaaaa", linearIntArrayToAsciiString(new int[]{97, 97, 97, 97, 97, 97, 97}));
+        assertEquals("hello there", linearIntArrayToAsciiString(
                 new int[]{
                         104, 101, 108, 108, 111, 32, 116, 104, 101, 114, 101
                 }));

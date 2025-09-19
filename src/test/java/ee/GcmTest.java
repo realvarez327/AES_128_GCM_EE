@@ -21,9 +21,6 @@ public class GcmTest {
         BetterBitSet testAgainst = new BetterBitSet(2);
         testAgainst.set(0);
         testAgainst.set(1);
-        System.out.println(bitsetToBinaryString(msb2)+" should be "+bitsetToBinaryString(testAgainst));
-        System.out.println("testAgainst = " + testAgainst);
-        System.out.println("msb2 = " + msb2);
         msb2.xor(testAgainst);
         assertTrue(msb2.isEmpty());
     }
