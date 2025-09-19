@@ -29,9 +29,9 @@ public class AppTest {
     @Test
     public void basicAESInt(){
         String aesPlainText = "fantasticalities";
-        int[] cipherText = cipherIntState(keyString, plaintextTo2DIntArray(aesPlainText));
+        int[] cipherText = cipherIntStateRconGenerate(keyString, plaintextTo2DIntArray(aesPlainText));
         System.out.println(linearIntArrayToAsciiString(cipherText));
-        int[] backToPlainText = invCipher(keyString, linearToTwoDimensionalArray(cipherText));
+        int[] backToPlainText = invCipherRconGenerate(keyString, linearToTwoDimensionalArray(cipherText));
         System.out.println(linearIntArrayToAsciiString(backToPlainText));
         assertEquals(aesPlainText, linearIntArrayToAsciiString(backToPlainText));
     }
@@ -41,7 +41,7 @@ public class AppTest {
         String aesPlainText = "fantasticalities";
         BetterBitSet cipherText = cipherBitSetState(keyString, BetterBitSet.asciiStringToBitset(aesPlainText));
         System.out.println("ciphertext = "+cipherText.bitSetToAsciiString());
-        int[] backToPlainText = invCipher(keyString, bitsetToTwoDimensionalIntArray(cipherText));
+        int[] backToPlainText = invCipherRconGenerate(keyString, bitsetToTwoDimensionalIntArray(cipherText));
         System.out.println("back to plaintext = "+ linearIntArrayToAsciiString(backToPlainText));
         assertEquals(aesPlainText, linearIntArrayToAsciiString(backToPlainText));
     }

@@ -10,6 +10,21 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class UtilsTest {
     @Test
+    public void RconGenerateTest(){
+        assertEquals(0x01, AES_128.RconGenerate(1)[0]);
+        assertEquals(0x02, AES_128.RconGenerate(2)[0]);
+        assertEquals(0x04, AES_128.RconGenerate(3)[0]);
+        assertEquals(0x08, AES_128.RconGenerate(4)[0]);
+        assertEquals(0x10, AES_128.RconGenerate(5)[0]);
+        assertEquals(0x20, AES_128.RconGenerate(6)[0]);
+        assertEquals(0x40, AES_128.RconGenerate(7)[0]);
+        assertEquals(0x80, AES_128.RconGenerate(8)[0]);
+        assertEquals(0x1b, AES_128.RconGenerate(9)[0]);
+        assertEquals(0x36, AES_128.RconGenerate(10)[0]);
+
+    }
+
+    @Test
     public void bitsetToTwoDimensionalIntArrayTest() {
         BetterBitSet tester = BetterBitSet.asciiStringToBitset("wazzocks");
         int[][] shouldBe = new int[][]{

@@ -1,7 +1,7 @@
 package ee;
 
-import static ee.AES_128.cipherIntState;
-import static ee.AES_128.invCipher;
+import static ee.AES_128.cipherIntStateRconGenerate;
+import static ee.AES_128.invCipherRconGenerate;
 import static ee.Utils.*;
 
 public class App {
@@ -13,9 +13,9 @@ public class App {
         String dataToAuthenticate = "This is my extended essay.";// has to be less than 2^64
 
         //Basic AES test case
-        int[] cipherText = cipherIntState(keyString, plaintextTo2DIntArray(plaintext));
+        int[] cipherText = cipherIntStateRconGenerate(keyString, plaintextTo2DIntArray(plaintext));
         System.out.println(linearIntArrayToAsciiString(cipherText));
-        int[] backToPlainText = invCipher(keyString, linearToTwoDimensionalArray(cipherText));
+        int[] backToPlainText = invCipherRconGenerate(keyString, linearToTwoDimensionalArray(cipherText));
         System.out.println(linearIntArrayToAsciiString(backToPlainText));
 
 

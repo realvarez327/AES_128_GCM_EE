@@ -18,7 +18,15 @@ public class AesTest {
         assertEquals(0x8e, Utils.xTimes(0x47));
         assertEquals(0x07, Utils.xTimes(0x8e));
         assertEquals(0x0e, Utils.xTimes(0x07));
-
+        assertEquals(0x02, Utils.xTimes(0x01));
+        assertEquals(0x04, Utils.xTimes(0x02));
+        assertEquals(0x08, Utils.xTimes(0x4));
+        assertEquals(0x10, Utils.xTimes(0x08));
+        assertEquals(0x20, Utils.xTimes(0x10));
+        assertEquals(0x40, Utils.xTimes(0x20));
+        assertEquals(0x80, Utils.xTimes(0x40));
+        assertEquals(0x1b, Utils.xTimes(0x80));
+        assertEquals(0x36, Utils.xTimes(0x1b));
     }
 
     @Test

@@ -51,6 +51,50 @@ public class Utils {
         return textReturn;
     }
 
+    static Word[] plaintextToWordArray(String textGiven){
+        int len = textGiven.length();
+        Word[] toReturn = new Word[]{
+                new Word(),
+                new Word(),
+                new Word(),
+                new Word()
+        };
+        for (int i = 0; i < 16; i++) {
+            if (i < len) {
+                toReturn[i / 4].setItemAtIndex(textGiven.charAt(i), i%4);
+            }else{
+                toReturn[i / 4].setItemAtIndex(0, i%4);
+            }
+        }
+        return toReturn;
+    }
+
+    static int[] twoDimensionalToLinearArrayWord(Word[] input){
+        int width = input.length;
+        int[] out = new int[width * width];
+        for (int r = 0; r < width; r++) {
+            for (int c = 0; c < width; c++) {
+                out[r + (width * c)] = input[c].getItemAtIndex(r);
+            }
+        }
+        return out;
+    }
+
+    static Word[] linearIntegerToWordArray(int[] in){
+        int len = in.length;
+        Word[] out = new Word[]{
+                new Word(),
+                new Word(),
+                new Word(),
+                new Word()
+        };
+        for (int i = 0; i < len; i++) {
+            out[i/4].setItemAtIndex(in[i], i%4);
+        }
+
+        return out;
+    }
+
     public static BetterBitSet multiplicationBlock(BetterBitSet X, BetterBitSet Y) {
         final BetterBitSet R = new BetterBitSet(128);
         R.set(120);
